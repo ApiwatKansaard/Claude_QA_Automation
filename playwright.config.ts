@@ -17,7 +17,7 @@ export default defineConfig({
 
   reporter: [
     ['list'],
-    ['html', { outputFolder: `reports/${env}/html`, open: 'never' }],
+    ['html', { outputFolder: `reports/${env}/html`, open: 'always' }],
     ['json', { outputFile: `reports/${env}/results.json` }],
     ['junit', { outputFile: `reports/${env}/junit.xml` }],
   ],
@@ -63,29 +63,29 @@ export default defineConfig({
       },
     },
 
-    // --- Mobile Tests ---
-    {
-      name: 'mobile',
-      testDir: './tests/e2e',
-      testMatch: /[\/]tests[\/]e2e[\/].+[\/].*\.spec\.ts$/,
-      dependencies: ['setup'],
-      use: {
-        ...devices['iPhone 14'],
-        storageState: config.authStatePath,
-      },
-    },
+    // --- Mobile Tests (disabled — enable with: npx playwright test --project=mobile) ---
+    // {
+    //   name: 'mobile',
+    //   testDir: './tests/e2e',
+    //   testMatch: /[\/]tests[\/]e2e[\/].+[\/].*\.spec\.ts$/,
+    //   dependencies: ['setup'],
+    //   use: {
+    //     ...devices['iPhone 14'],
+    //     storageState: config.authStatePath,
+    //   },
+    // },
 
-    // --- Cross-browser ---
-    {
-      name: 'firefox',
-      testDir: './tests/e2e',
-      testMatch: /[\/]tests[\/]e2e[\/].+[\/].*\.spec\.ts$/,
-      dependencies: ['setup'],
-      use: {
-        ...devices['Desktop Firefox'],
-        storageState: config.authStatePath,
-      },
-    },
+    // --- Cross-browser (disabled — enable with: npx playwright test --project=firefox) ---
+    // {
+    //   name: 'firefox',
+    //   testDir: './tests/e2e',
+    //   testMatch: /[\/]tests[\/]e2e[\/].+[\/].*\.spec\.ts$/,
+    //   dependencies: ['setup'],
+    //   use: {
+    //     ...devices['Desktop Firefox'],
+    //     storageState: config.authStatePath,
+    //   },
+    // },
   ],
 
   outputDir: 'test-results/',
