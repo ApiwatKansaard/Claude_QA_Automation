@@ -1,0 +1,12 @@
+{
+  "admin": {
+    "email": "admin@example.com",
+    "password": "placeholder",
+    "role": "admin"
+  },
+  "viewer": {
+    "email": "viewer@example.com",
+    "password": "placeholder",
+    "role": "viewer"
+  }
+}

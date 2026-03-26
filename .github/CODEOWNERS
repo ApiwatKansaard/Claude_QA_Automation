@@ -1,0 +1,11 @@
+# Config files — team lead approval required
+playwright.config.ts        @ApiwatKansaard
+tsconfig.json               @ApiwatKansaard
+package.json                @ApiwatKansaard
+src/config/                 @ApiwatKansaard
+src/fixtures/               @ApiwatKansaard
+
+# Test files — any QA engineer can push
+# tests/ — not listed = anyone can merge
+# test-data/ — not listed = anyone can merge
+# selectors/ — not listed = anyone can merge

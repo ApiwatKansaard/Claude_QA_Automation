@@ -1,0 +1,56 @@
+{
+  "name": "ekoai-playwright-tests",
+  "version": "1.0.0",
+  "description": "End-to-end and API automation tests for EkoAI platform using Playwright",
+  "scripts": {
+    "test": "npx playwright test",
+    "test:ui": "npx playwright test --ui",
+    "test:headed": "npx playwright test --headed",
+    "test:debug": "npx playwright test --debug",
+    "test:e2e": "npx playwright test --project=e2e",
+    "test:api": "npx playwright test --project=api",
+    "test:smoke": "npx playwright test --grep @smoke",
+    "test:sanity": "npx playwright test --grep @sanity",
+    "test:regression": "npx playwright test --grep @regression",
+    "test:security": "npx playwright test --grep @security",
+    "test:p1": "npx playwright test --grep @P1",
+    "test:dev": "TEST_ENV=dev npx playwright test",
+    "test:staging": "TEST_ENV=staging npx playwright test",
+    "test:prod": "TEST_ENV=prod npx playwright test --grep @smoke",
+    "test:dev:smoke": "TEST_ENV=dev npx playwright test --grep @smoke",
+    "test:dev:sanity": "TEST_ENV=dev npx playwright test --grep @sanity",
+    "test:dev:regression": "TEST_ENV=dev npx playwright test --grep @regression",
+    "test:staging:smoke": "TEST_ENV=staging npx playwright test --grep @smoke",
+    "test:staging:sanity": "TEST_ENV=staging npx playwright test --grep @sanity",
+    "test:staging:regression": "TEST_ENV=staging npx playwright test --grep @regression",
+    "test:prod:smoke": "TEST_ENV=prod npx playwright test --grep @smoke",
+    "setup": "npx playwright test --project=setup",
+    "setup:dev": "TEST_ENV=dev npx playwright test --project=setup",
+    "setup:staging": "TEST_ENV=staging npx playwright test --project=setup",
+    "setup:prod": "TEST_ENV=prod npx playwright test --project=setup",
+    "report": "npx playwright show-report reports/html",
+    "codegen": "npx playwright codegen",
+    "lint": "eslint 'src/**/*.ts' 'tests/**/*.ts'",
+    "lint:fix": "eslint --fix 'src/**/*.ts' 'tests/**/*.ts'",
+    "format": "prettier --write 'src/**/*.ts' 'tests/**/*.ts'",
+    "check-conflicts": "ts-node scripts/check-conflicts.ts"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.52.0",
+    "@types/node": "^22.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "allure-playwright": "^3.2.0",
+    "dotenv": "^16.4.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.4.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "csv-parse": "^6.2.1"
+  }
+}

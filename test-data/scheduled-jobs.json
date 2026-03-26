@@ -1,0 +1,18 @@
+{
+  "validJob": {
+    "name": "Morning Brief - Weekdays",
+    "description": "Sends morning brief to all users every weekday at 8am",
+    "schedule": "0 8 * * 1-5",
+    "endpoint": "https://api.ekoai.dev/process/morning-brief",
+    "actionType": "MORNING_BRIEF",
+    "audienceType": "Eko"
+  },
+  "invalidJob": {
+    "name": "",
+    "description": "",
+    "schedule": "invalid-cron",
+    "endpoint": "http://not-https.com/process",
+    "actionType": "MORNING_BRIEF",
+    "audienceType": "Eko"
+  }
+}

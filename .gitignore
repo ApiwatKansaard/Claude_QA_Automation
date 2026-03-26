@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Test artifacts
+test-results/
+reports/
+playwright/.auth/
+
+# Environment — NEVER commit credentials
+.env
+.env.local
+*.env
+!.env.example
+!environments/.env.*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# Backup / deleted files
+*.bak
+*.DELETED
