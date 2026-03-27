@@ -1,19 +1,37 @@
 {
-  "sprint": "sharp-test-001",
+  "sprint": "agentic-sharepoint-km",
   "product": "agentic",
-  "feature": "scheduled-jobs",
+  "feature": "sharepoint-km",
   "jiraProject": "AE",
-  "jiraBoardId": 32,
-  "testrailSuiteId": 5137,
-  "testrailMilestoneId": 904,
+  "jiraEpic": "AE-14305",
+  "jiraBoardId": 530,
+  "testrailSuiteId": 3924,
+  "testrailMilestoneId": null,
+  "confluencePages": [
+    {
+      "id": "3529572362",
+      "title": "[TS] SharePoint as KM Source — RAG Integration",
+      "url": "https://ekoapp.atlassian.net/wiki/spaces/EP/pages/3529572362"
+    },
+    {
+      "id": "3536584723",
+      "title": "[TS] SharePoint KM Search — EkoAI Integration",
+      "url": "https://ekoapp.atlassian.net/wiki/spaces/EP/pages/3536584723"
+    },
+    {
+      "id": "3536584707",
+      "title": "[TS] User Auth Connections — Agent-Initiated Sign-In",
+      "url": "https://ekoapp.atlassian.net/wiki/spaces/EP/pages/3536584707"
+    }
+  ],
   "dirs": {
-    "e2e": "tests/e2e/agentic/scheduled-jobs",
-    "api": "tests/api/agentic/scheduled-jobs",
-    "pages": "src/pages/agentic/scheduled-jobs",
-    "selectors": "selectors/agentic/scheduled-jobs.json",
-    "archive": "archive/agentic/sharp-test-001"
+    "e2e": "tests/e2e/agentic/sharepoint-km",
+    "api": "tests/api/agentic/sharepoint-km",
+    "pages": "src/pages/agentic/sharepoint-km",
+    "selectors": "selectors/agentic/sharepoint-km.json",
+    "archive": "archive/agentic/agentic-sharepoint-km"
   },
-  "previousSprint": "archive/agentic/agentic-18.2",
-  "startDate": "2026-03-01",
-  "endDate": "2026-03-27"
+  "previousSprint": "archive/agentic/sharp-test-001",
+  "startDate": "2026-03-27",
+  "endDate": null
 }
