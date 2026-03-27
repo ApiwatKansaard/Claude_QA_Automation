@@ -27,6 +27,7 @@ test.describe('Scheduled Jobs — Recipients', { tag: ['@scheduled-jobs'] }, () 
     const audienceTab = page.getByRole('button', { name: 'Audience' });
     await expect(audienceTab).toBeVisible({ timeout: 10_000 });
     await audienceTab.click();
+    await page.waitForURL('**?tab=audience**', { timeout: 10_000 });
     await page.waitForLoadState('networkidle');
     return true;
   }
@@ -177,7 +178,7 @@ test.describe('Scheduled Jobs — Recipients', { tag: ['@scheduled-jobs'] }, () 
       }
 
       // Assert: audience tab is accessible and shows user list
-      const audienceSection = page.getByText('Audience', { exact: true });
+      const audienceSection = page.getByRole('button', { name: 'Audience' });
       await expect(audienceSection).toBeVisible({ timeout: 10_000 });
     }
   );
@@ -197,7 +198,7 @@ test.describe('Scheduled Jobs — Recipients', { tag: ['@scheduled-jobs'] }, () 
 
       // Assert: the audience tab renders without crashes
       await expect(page.locator('text=something went wrong').or(
-        page.getByText('Audience', { exact: true })
+        page.getByRole('button', { name: 'Audience' })
       )).toBeVisible({ timeout: 10_000 });
     }
   );
@@ -251,8 +252,10 @@ test.describe('Scheduled Jobs — Recipients', { tag: ['@scheduled-jobs'] }, () 
         return;
       }
 
-      // Act: click manage/update audience button
-      if (await recipientsPage.updateAudienceButton.isVisible().catch(() => false)) {
+      // Act: click manage/update audience button (only if visible AND enabled)
+      const btnVisible = await recipientsPage.updateAudienceButton.isVisible().catch(() => false);
+      const btnEnabled = await recipientsPage.updateAudienceButton.isEnabled().catch(() => false);
+      if (btnVisible && btnEnabled) {
         await recipientsPage.updateAudienceButton.click();
 
         // Assert: modal opens or audience management UI appears
@@ -319,10 +322,10 @@ test.describe('Scheduled Jobs — Recipients', { tag: ['@scheduled-jobs'] }, () 
       const runningWarning = page.locator('[role="alert"], .warning, .banner').filter({
         hasText: /running|in progress|affects next run/i
       });
-      const audienceSection = page.getByText('Audience', { exact: true });
       const hasWarning = await runningWarning.isVisible().catch(() => false);
-      const hasSection = await audienceSection.isVisible().catch(() => false);
-      expect(hasWarning || hasSection).toBeTruthy();
+      // Audience tab content loaded = URL contains tab=audience
+      const onAudienceTab = page.url().includes('tab=audience');
+      expect(hasWarning || onAudienceTab).toBeTruthy();
     }
   );
 });

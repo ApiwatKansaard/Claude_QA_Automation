@@ -40,15 +40,9 @@ test.describe('Scheduled Jobs — Create Job', { tag: ['@scheduled-jobs'] }, () 
       await createWizardPage.goto();
       await expect(createWizardPage.schedulerNameInput).toBeVisible();
 
-      // Act: fill required fields
-      await createWizardPage.fillBasicInfo(
+      // Act: fill all required Step 1 fields
+      await createWizardPage.fillStep1Required(
         `QA-Create-Test-${Date.now()}`,
-        'Auto-generated test job'
-      );
-      await createWizardPage.clickNext();
-
-      // Fill process endpoint
-      await createWizardPage.fillProcessEndpoint(
         'https://api.example.com/process',
         'qa-test-api-key'
       );
@@ -71,8 +65,8 @@ test.describe('Scheduled Jobs — Create Job', { tag: ['@scheduled-jobs'] }, () 
       await createWizardPage.goto();
       await expect(createWizardPage.schedulerNameInput).toBeVisible();
 
-      // Act: fill name and proceed to trigger config step
-      await createWizardPage.fillBasicInfo('QA-Cron-Test');
+      // Act: fill all required Step 1 fields
+      await createWizardPage.fillStep1Required('QA-Cron-Test', 'https://api.example.com/process', 'qa-test-api-key');
       await createWizardPage.clickNext();
 
       // Assert: schedule time input accepts valid time value
@@ -122,13 +116,11 @@ test.describe('Scheduled Jobs — Create Job', { tag: ['@scheduled-jobs'] }, () 
       await createWizardPage.goto();
       await expect(createWizardPage.schedulerNameInput).toBeVisible();
 
-      // Act: wizard is accessible and audience step is reachable
-      await createWizardPage.fillBasicInfo('QA-Audience-Test');
-      await createWizardPage.clickNext();
+      // Act: wizard is accessible — filling step 1 enables Next
+      await createWizardPage.fillStep1Required('QA-Audience-Test', 'https://api.example.com/process', 'qa-test-api-key');
 
-      // Assert: wizard navigation works
-      expect(page.url()).toContain('/create');
-      await expect(createWizardPage.nextButton.or(createWizardPage.cancelButton)).toBeVisible();
+      // Assert: Next button becomes enabled after filling required fields
+      await expect(createWizardPage.nextButton).toBeEnabled({ timeout: 10_000 });
     }
   );
 
@@ -141,7 +133,7 @@ test.describe('Scheduled Jobs — Create Job', { tag: ['@scheduled-jobs'] }, () 
       // Arrange: open wizard
       await createWizardPage.goto();
       await expect(createWizardPage.schedulerNameInput).toBeVisible();
-      await createWizardPage.fillBasicInfo('QA-Action-Test');
+      await createWizardPage.fillStep1Required('QA-Action-Test', 'https://api.example.com/process', 'qa-test-api-key');
       await createWizardPage.clickNext();
 
       // Act: check action configuration options
@@ -172,14 +164,9 @@ test.describe('Scheduled Jobs — Create Job', { tag: ['@scheduled-jobs'] }, () 
       await createWizardPage.goto();
       await expect(createWizardPage.schedulerNameInput).toBeVisible();
 
-      // Act: attempt to proceed without filling name
-      await createWizardPage.nextButton.click();
-
-      // Assert: validation error appears or button is disabled
-      const validationError = page.locator('text=/required|please enter|field is required/i');
-      const buttonStillVisible = await createWizardPage.nextButton.isVisible();
-      const hasError = await validationError.isVisible().catch(() => false);
-      expect(hasError || buttonStillVisible).toBeTruthy();
+      // Assert: Next button is disabled when required fields are empty (this IS the validation)
+      const isDisabled = await createWizardPage.nextButton.isDisabled();
+      expect(isDisabled).toBeTruthy();
     }
   );
 
@@ -192,7 +179,7 @@ test.describe('Scheduled Jobs — Create Job', { tag: ['@scheduled-jobs'] }, () 
       // Arrange: open wizard and reach endpoint step
       await createWizardPage.goto();
       await expect(createWizardPage.schedulerNameInput).toBeVisible();
-      await createWizardPage.fillBasicInfo('QA-HTTPS-Validation');
+      await createWizardPage.fillStep1Required('QA-HTTPS-Validation', 'https://api.example.com/process', 'qa-test-api-key');
       await createWizardPage.clickNext();
 
       // Act: enter HTTP (non-HTTPS) endpoint
@@ -218,7 +205,7 @@ test.describe('Scheduled Jobs — Create Job', { tag: ['@scheduled-jobs'] }, () 
       // Arrange: navigate to trigger config step
       await createWizardPage.goto();
       await expect(createWizardPage.schedulerNameInput).toBeVisible();
-      await createWizardPage.fillBasicInfo('QA-Cron-Validation');
+      await createWizardPage.fillStep1Required('QA-Cron-Validation', 'https://api.example.com/process', 'qa-test-api-key');
       await createWizardPage.clickNext();
 
       // Act: if there is a cron input, enter invalid value
@@ -244,7 +231,7 @@ test.describe('Scheduled Jobs — Create Job', { tag: ['@scheduled-jobs'] }, () 
       // Arrange: open wizard
       await createWizardPage.goto();
       await expect(createWizardPage.schedulerNameInput).toBeVisible();
-      await createWizardPage.fillBasicInfo('QA-DefaultTimeout');
+      await createWizardPage.fillStep1Required('QA-DefaultTimeout', 'https://api.example.com/process', 'qa-test-api-key');
       await createWizardPage.clickNext();
 
       // Act: check default timeout value when visible
@@ -266,7 +253,7 @@ test.describe('Scheduled Jobs — Create Job', { tag: ['@scheduled-jobs'] }, () 
       // Arrange: navigate to trigger step
       await createWizardPage.goto();
       await expect(createWizardPage.schedulerNameInput).toBeVisible();
-      await createWizardPage.fillBasicInfo('QA-DatePicker');
+      await createWizardPage.fillStep1Required('QA-DatePicker', 'https://api.example.com/process', 'qa-test-api-key');
       await createWizardPage.clickNext();
 
       // Act: find and interact with date picker if visible
@@ -293,7 +280,7 @@ test.describe('Scheduled Jobs — Create Job', { tag: ['@scheduled-jobs'] }, () 
       // Arrange: navigate to trigger config step
       await createWizardPage.goto();
       await expect(createWizardPage.schedulerNameInput).toBeVisible();
-      await createWizardPage.fillBasicInfo('QA-RunUntilTimes');
+      await createWizardPage.fillStep1Required('QA-RunUntilTimes', 'https://api.example.com/process', 'qa-test-api-key');
       await createWizardPage.clickNext();
 
       // Act: find runUntilTimes input if visible

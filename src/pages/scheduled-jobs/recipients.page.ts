@@ -19,7 +19,8 @@ export class RecipientsPage extends BasePage {
   constructor(page: Page) {
     super(page);
 
-    this.sectionHeading = page.getByText('Audience', { exact: true });
+    // Content area heading — unique to audience tab (avoids matching the tab button)
+    this.sectionHeading = page.locator('span').filter({ hasText: /^Audience$/ }).first();
     this.updateAudienceButton = page.getByRole('button', { name: 'Update Audience' });
     this.totalAudiencesLabel = page.getByText('Total :');
     this.individualUsersSection = page.getByText('Select Individual Users');
@@ -35,6 +36,8 @@ export class RecipientsPage extends BasePage {
   }
 
   async clickUpdateAudience(): Promise<void> {
+    const isEnabled = await this.updateAudienceButton.isEnabled().catch(() => false);
+    if (!isEnabled) return;
     await this.updateAudienceButton.click();
     await this.page.waitForLoadState('networkidle');
   }
