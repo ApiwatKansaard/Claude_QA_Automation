@@ -42,7 +42,10 @@ function buildCreatePayload(nameSuffix: string) {
 test.describe('Scheduled Jobs — CRUD API', { tag: ['@api', '@scheduled-jobs', '@destructive'] }, () => {
 
   test('TC-API-CRUD-001: POST creates a job, cleanup deletes it',
-    { tag: ['@regression', '@P1'] },
+    {
+      annotation: { type: 'TestRail', description: 'C1548497' },
+      tag: ['@regression', '@P1'],
+    },
     async ({ request, cleanup }) => {
     const payload = buildCreatePayload('Create');
 
@@ -63,7 +66,7 @@ test.describe('Scheduled Jobs — CRUD API', { tag: ['@api', '@scheduled-jobs', 
     const jobId = body.data?.id || body.id;
     expect(jobId).toBeTruthy();
 
-    // ★ Register for auto-cleanup — runs after test regardless of pass/fail
+    // Register for auto-cleanup — runs after test regardless of pass/fail
     cleanup.track('scheduled-job', jobId);
 
     // --- VERIFY it exists ---
@@ -77,7 +80,10 @@ test.describe('Scheduled Jobs — CRUD API', { tag: ['@api', '@scheduled-jobs', 
   });
 
   test('TC-API-CRUD-002: PUT updates a created job',
-    { tag: ['@regression', '@P1'] },
+    {
+      annotation: { type: 'TestRail', description: 'C1548510' },
+      tag: ['@regression', '@P1'],
+    },
     async ({ request, cleanup }) => {
     // --- CREATE ---
     const payload = buildCreatePayload('Update');

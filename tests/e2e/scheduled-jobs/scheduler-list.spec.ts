@@ -1,9 +1,8 @@
 /**
- * UI Test: AI Task Scheduler — List Page
+ * UI Test: AI Task Scheduler — List Page (Dashboard)
  *
  * Maps to TestRail: "Agentic > Scheduled Jobs > Dashboard"
- * Test Case: "Check scheduled jobs list should be displayed on Dashboard page"
- * Type: Smoke Test | Priority: P1 | Platform: Web
+ * Type: Smoke/Sanity/Regression | Priority: P1/P2 | Platform: Web
  */
 import { test, expect } from '../../fixtures';
 
@@ -13,7 +12,10 @@ test.describe('AI Task Scheduler — List Page', { tag: ['@scheduled-jobs'] }, (
   });
 
   test('TC-DASH-001: scheduled jobs list should be displayed',
-    { tag: ['@smoke', '@P1'] },
+    {
+      annotation: { type: 'TestRail', description: 'C1548489' },
+      tag: ['@smoke', '@P1'],
+    },
     async ({ schedulerPage, page }) => {
     // 1. Page title and subtitle are visible
     await expect(schedulerPage.pageTitle).toBeVisible();
@@ -39,7 +41,10 @@ test.describe('AI Task Scheduler — List Page', { tag: ['@scheduled-jobs'] }, (
   });
 
   test('TC-DASH-002: job details page opens when clicking a job',
-    { tag: ['@smoke', '@P1'] },
+    {
+      annotation: { type: 'TestRail', description: 'C1548490' },
+      tag: ['@smoke', '@P1'],
+    },
     async ({ schedulerPage, page }) => {
     await schedulerPage.clickJob(0);
     await page.waitForURL('**/ai-task-scheduler/management/**', { timeout: 15_000 });
@@ -47,7 +52,10 @@ test.describe('AI Task Scheduler — List Page', { tag: ['@scheduled-jobs'] }, (
   });
 
   test('TC-DASH-003: search and filter controls are visible',
-    { tag: ['@sanity', '@P2'] },
+    {
+      annotation: { type: 'TestRail', description: 'C1548491' },
+      tag: ['@sanity', '@P2'],
+    },
     async ({ schedulerPage }) => {
     await expect(schedulerPage.searchInput).toBeVisible();
     await expect(schedulerPage.searchInput).toHaveAttribute('placeholder', 'Search');
@@ -59,14 +67,20 @@ test.describe('AI Task Scheduler — List Page', { tag: ['@scheduled-jobs'] }, (
   });
 
   test('TC-DASH-004: Create New Scheduler button navigates to create page',
-    { tag: ['@smoke', '@P1'] },
+    {
+      annotation: { type: 'TestRail', description: 'C1548496' },
+      tag: ['@smoke', '@P1'],
+    },
     async ({ schedulerPage, page }) => {
     await schedulerPage.clickCreateNew();
     expect(page.url()).toContain('/create');
   });
 
   test('TC-DASH-005: search accepts input and triggers search',
-    { tag: ['@sanity', '@P2'] },
+    {
+      annotation: { type: 'TestRail', description: 'C1548491' },
+      tag: ['@sanity', '@P2'],
+    },
     async ({ schedulerPage, page }) => {
     // Get a known job name from the list
     const jobNames = await schedulerPage.getJobNames();
@@ -85,7 +99,10 @@ test.describe('AI Task Scheduler — List Page', { tag: ['@scheduled-jobs'] }, (
   });
 
   test('TC-DASH-006: status filter dropdown shows options',
-    { tag: ['@sanity', '@P2'] },
+    {
+      annotation: { type: 'TestRail', description: 'C1548491' },
+      tag: ['@sanity', '@P2'],
+    },
     async ({ schedulerPage, page }) => {
     // Click the status dropdown
     await schedulerPage.statusDropdown.click();
@@ -101,7 +118,10 @@ test.describe('AI Task Scheduler — List Page', { tag: ['@scheduled-jobs'] }, (
   });
 
   test('TC-DASH-007: sort dropdown shows options',
-    { tag: ['@sanity', '@P2'] },
+    {
+      annotation: { type: 'TestRail', description: 'C1548491' },
+      tag: ['@sanity', '@P2'],
+    },
     async ({ schedulerPage, page }) => {
     await expect(schedulerPage.sortDropdown).toContainText('Last update');
 
@@ -115,7 +135,10 @@ test.describe('AI Task Scheduler — List Page', { tag: ['@scheduled-jobs'] }, (
   });
 
   test('TC-DASH-008: each job card has an enable/disable toggle',
-    { tag: ['@smoke', '@P1'] },
+    {
+      annotation: { type: 'TestRail', description: 'C1548489' },
+      tag: ['@smoke', '@P1'],
+    },
     async ({ schedulerPage, page }) => {
     const jobCount = await schedulerPage.getJobCount();
     expect(jobCount).toBeGreaterThan(0);
@@ -131,7 +154,10 @@ test.describe('AI Task Scheduler — List Page', { tag: ['@scheduled-jobs'] }, (
   });
 
   test('TC-DASH-009: job config page displays all key fields',
-    { tag: ['@smoke', '@P1'] },
+    {
+      annotation: { type: 'TestRail', description: 'C1548490' },
+      tag: ['@smoke', '@P1'],
+    },
     async ({ schedulerPage, page }) => {
     await schedulerPage.clickJob(0);
     await page.waitForURL('**/ai-task-scheduler/management/**', { timeout: 15_000 });

@@ -1,0 +1,421 @@
+{
+  "pageName": "scheduled-jobs",
+  "baseUrl": "https://ekoai-console.staging.ekoapp.com",
+  "inspectedAt": "2026-03-27T00:00:00Z",
+  "note": "No data-testid attributes found on staging. Selectors use ARIA roles, placeholder, and visible text. Re-run /auto-inspect after UI updates.",
+  "routes": {
+    "dashboard": "/ai-task-scheduler",
+    "create": "/ai-task-scheduler/ai-task-scheduler/create",
+    "management": "/ai-task-scheduler/management/{id}",
+    "management_audience": "/ai-task-scheduler/management/{id}?tab=audience",
+    "management_history": "/ai-task-scheduler/management/{id}?tab=history_log"
+  },
+
+  "navigation": {
+    "sideNav": {
+      "selector": "nav",
+      "playwright": "page.locator('nav')",
+      "type": "tag",
+      "description": "Left sidebar navigation"
+    },
+    "scheduledJobsLink": {
+      "selector": "a[href='/ai-task-scheduler']",
+      "playwright": "page.locator(\"a[href='/ai-task-scheduler']\")",
+      "type": "css",
+      "description": "AI Task Scheduler nav link"
+    }
+  },
+
+  "dashboard": {
+    "pageHeading": {
+      "selector": "h1, h2",
+      "playwright": "page.getByRole('heading')",
+      "type": "role",
+      "description": "Page heading — 'AI Task Scheduler'"
+    },
+    "pageSubtitle": {
+      "selector": "text=Manage automated AI agents",
+      "playwright": "page.getByText('Manage automated AI agents')",
+      "type": "text",
+      "description": "Page subtitle"
+    },
+    "createButton": {
+      "selector": "button:has-text('Create New Scheduler')",
+      "playwright": "page.getByRole('button', { name: 'Create New Scheduler' })",
+      "type": "role",
+      "description": "Create New Scheduler button"
+    },
+    "totalSchedulersStat": {
+      "selector": "text=Total Schedulers",
+      "playwright": "page.getByText('Total Schedulers')",
+      "type": "text",
+      "description": "Total Schedulers stat card label"
+    },
+    "successRateStat": {
+      "selector": "text=Success Rate",
+      "playwright": "page.getByText('Success Rate')",
+      "type": "text",
+      "description": "Success Rate stat card label"
+    },
+    "failureLogsStat": {
+      "selector": "text=Failure Logs",
+      "playwright": "page.getByText('Failure Logs')",
+      "type": "text",
+      "description": "Failure Logs stat card label"
+    },
+    "failureLogsButton": {
+      "selector": "button:near(:text('Failure Logs'))",
+      "playwright": "page.locator('button').filter({ hasText: '' }).nth(0)",
+      "type": "css",
+      "description": "Failure Logs expand/view button"
+    },
+    "scheduledJobsSectionHeading": {
+      "selector": "text=Scheduled Jobs",
+      "playwright": "page.getByText('Scheduled Jobs', { exact: true })",
+      "type": "text",
+      "description": "Scheduled Jobs list section heading"
+    },
+    "jobCountLabel": {
+      "selector": "text=/All scheduled jobs \\(\\d+ total\\)/",
+      "playwright": "page.getByText(/All scheduled jobs \\(\\d+ total\\)/)",
+      "type": "regex",
+      "description": "Job count label e.g. 'All scheduled jobs (12 total)'"
+    },
+    "searchInput": {
+      "selector": "input[placeholder='Search']",
+      "playwright": "page.getByPlaceholder('Search').first()",
+      "type": "placeholder",
+      "description": "Search input in job list"
+    },
+    "searchButton": {
+      "selector": "button:has-text('Search')",
+      "playwright": "page.getByRole('button', { name: 'Search' })",
+      "type": "role",
+      "description": "Search submit button"
+    },
+    "statusFilterDropdown": {
+      "selector": "text=All Status",
+      "playwright": "page.getByText('All Status')",
+      "type": "text",
+      "description": "Status filter dropdown — default 'All Status'"
+    },
+    "sortDropdown": {
+      "selector": "text=Last update",
+      "playwright": "page.getByText('Last update').first()",
+      "type": "text",
+      "description": "Sort by dropdown — default 'Last update'"
+    },
+    "jobListItem": {
+      "selector": "a[href^='/ai-task-scheduler/management/']",
+      "playwright": "page.locator(\"a[href*='/ai-task-scheduler/management/']\").first()",
+      "type": "css",
+      "description": "Single job row/card — links to management page"
+    },
+    "jobEnableToggle": {
+      "selector": "[role='switch']",
+      "playwright": "page.getByRole('switch').first()",
+      "type": "role",
+      "description": "Enable/disable toggle on job card"
+    },
+    "jobMoreButton": {
+      "selector": "a[href*='/management/'] button[type='button']",
+      "playwright": "page.locator(\"a[href*='/management/']\").first().getByRole('button')",
+      "type": "css",
+      "description": "More options button on job card (3-dot menu)"
+    },
+    "paginationPrev": {
+      "selector": "button:has(img[alt='left'])",
+      "playwright": "page.locator('button').filter({ has: page.locator('img[alt=\"left\"]') })",
+      "type": "css",
+      "description": "Previous page button"
+    },
+    "paginationNext": {
+      "selector": "button:has(img[alt='right'])",
+      "playwright": "page.locator('button').filter({ has: page.locator('img[alt=\"right\"]') })",
+      "type": "css",
+      "description": "Next page button"
+    },
+    "paginationInfo": {
+      "selector": "text=/\\d+-\\d+ of \\d+/",
+      "playwright": "page.getByText(/\\d+-\\d+ of \\d+/)",
+      "type": "regex",
+      "description": "Pagination info e.g. '1-10 of 12'"
+    }
+  },
+
+  "jobConfiguration": {
+    "tabJobConfig": {
+      "selector": "button:has-text('Job Configuration')",
+      "playwright": "page.getByRole('button', { name: 'Job Configuration' })",
+      "type": "role",
+      "description": "Job Configuration tab"
+    },
+    "tabAudience": {
+      "selector": "button:has-text('Audience')",
+      "playwright": "page.getByRole('button', { name: 'Audience' })",
+      "type": "role",
+      "description": "Audience tab"
+    },
+    "tabHistoryLog": {
+      "selector": "button:has-text('History Log')",
+      "playwright": "page.getByRole('button', { name: 'History Log' })",
+      "type": "role",
+      "description": "History Log tab"
+    },
+    "pageHeading": {
+      "selector": "text=Edit Scheduler",
+      "playwright": "page.getByText('Edit Scheduler')",
+      "type": "text",
+      "description": "Edit Scheduler heading"
+    },
+    "backToDashboardLink": {
+      "selector": "a[href='/ai-task-scheduler']",
+      "playwright": "page.locator(\"a[href='/ai-task-scheduler']\").last()",
+      "type": "css",
+      "description": "Back arrow link to dashboard"
+    },
+    "saveButton": {
+      "selector": "button[type='submit']",
+      "playwright": "page.getByRole('button', { name: 'Save change' })",
+      "type": "role",
+      "description": "Save change submit button"
+    },
+    "schedulerNameInput": {
+      "selector": "input[placeholder='Enter scheduler name']",
+      "playwright": "page.getByPlaceholder('Enter scheduler name')",
+      "type": "placeholder",
+      "description": "Scheduler Name text input"
+    },
+    "descriptionInput": {
+      "selector": "textarea[placeholder='Enter description'], input[placeholder='Enter description']",
+      "playwright": "page.getByPlaceholder('Enter description')",
+      "type": "placeholder",
+      "description": "Description text input"
+    },
+    "repeatDropdown": {
+      "selector": "text=Daily",
+      "playwright": "page.getByText('Daily')",
+      "type": "text",
+      "description": "Repeat frequency dropdown (default: Daily)"
+    },
+    "scheduleTimeInput": {
+      "selector": "input[placeholder='00:00']",
+      "playwright": "page.getByPlaceholder('00:00').first()",
+      "type": "placeholder",
+      "description": "Schedule Time input (HH:MM)"
+    },
+    "webhookUrlInput": {
+      "selector": "input[placeholder='Enter webhook URL']",
+      "playwright": "page.getByPlaceholder('Enter webhook URL')",
+      "type": "placeholder",
+      "description": "Custom webhook URL input"
+    },
+    "timeoutInput": {
+      "selector": "input[placeholder='00 : 00 : 00']",
+      "playwright": "page.getByPlaceholder('00 : 00 : 00')",
+      "type": "placeholder",
+      "description": "Timeout input (HH:MM:SS format)"
+    },
+    "apiKeyInput": {
+      "selector": "input[placeholder='Enter API Key']",
+      "playwright": "page.getByPlaceholder('Enter API Key')",
+      "type": "placeholder",
+      "description": "API Key input"
+    },
+    "actionDropdown": {
+      "selector": "text=Home page",
+      "playwright": "page.getByText('Home page')",
+      "type": "text",
+      "description": "Action dropdown (default: Home page)"
+    },
+    "runTimeImmediate": {
+      "selector": "input[type='radio'][value='IMMEDIATE'], label:has-text('As soon as the response is ready') input",
+      "playwright": "page.getByRole('radio', { name: 'IMMEDIATE' })",
+      "type": "role",
+      "description": "Run Time — IMMEDIATE radio option"
+    },
+    "runTimeScheduled": {
+      "selector": "input[type='radio'][value='SCHEDULED'], label:has-text('Set time') input",
+      "playwright": "page.getByRole('radio', { name: 'SCHEDULED' })",
+      "type": "role",
+      "description": "Run Time — SCHEDULED radio option"
+    },
+    "actionTimeInput": {
+      "selector": "input[placeholder='00:00']:nth-of-type(2)",
+      "playwright": "page.getByPlaceholder('00:00').nth(1)",
+      "type": "placeholder",
+      "description": "Action Run Time input (when SCHEDULED selected)"
+    }
+  },
+
+  "audience": {
+    "sectionHeading": {
+      "selector": "text=Audience",
+      "playwright": "page.getByText('Audience', { exact: true })",
+      "type": "text",
+      "description": "Audience tab section heading"
+    },
+    "updateAudienceButton": {
+      "selector": "button:has-text('Update Audience')",
+      "playwright": "page.getByRole('button', { name: 'Update Audience' })",
+      "type": "role",
+      "description": "Update Audience save button"
+    },
+    "totalAudiencesLabel": {
+      "selector": "text=Total :",
+      "playwright": "page.getByText('Total :')",
+      "type": "text",
+      "description": "Total audiences count label"
+    },
+    "individualUsersSection": {
+      "selector": "text=Select Individual Users",
+      "playwright": "page.getByText('Select Individual Users')",
+      "type": "text",
+      "description": "Individual Users section heading"
+    },
+    "individualSearchInput": {
+      "selector": "input[placeholder='Search']",
+      "playwright": "page.getByPlaceholder('Search').first()",
+      "type": "placeholder",
+      "description": "Search input for individual users"
+    },
+    "userCheckbox": {
+      "selector": "label input[type='checkbox']",
+      "playwright": "page.locator('label input[type=\"checkbox\"]').first()",
+      "type": "css",
+      "description": "Individual user checkbox (first item)"
+    },
+    "selectedCountBadge": {
+      "selector": "text=/ selected/",
+      "playwright": "page.getByText(/ selected/)",
+      "type": "regex",
+      "description": "Selected count badge e.g. '2 selected'"
+    },
+    "directoryGroupsSection": {
+      "selector": "text=Select Directory Groups",
+      "playwright": "page.getByText('Select Directory Groups')",
+      "type": "text",
+      "description": "Directory Groups section heading"
+    },
+    "directorySearchInput": {
+      "selector": "input[placeholder='Search']",
+      "playwright": "page.getByPlaceholder('Search').nth(1)",
+      "type": "placeholder",
+      "description": "Search input for directory groups"
+    }
+  },
+
+  "historyLog": {
+    "searchInput": {
+      "selector": "input[placeholder='Search']",
+      "playwright": "page.getByPlaceholder('Search')",
+      "type": "placeholder",
+      "description": "History Log search input"
+    },
+    "searchButton": {
+      "selector": "button:has-text('Search')",
+      "playwright": "page.getByRole('button', { name: 'Search' })",
+      "type": "role",
+      "description": "Search submit button"
+    },
+    "sortDropdown": {
+      "selector": "text=Last update",
+      "playwright": "page.getByText('Last update')",
+      "type": "text",
+      "description": "Sort by dropdown"
+    },
+    "historyTable": {
+      "selector": "[role='table']",
+      "playwright": "page.getByRole('table').first()",
+      "type": "role",
+      "description": "History log table header (Job Name / Failed At)"
+    },
+    "historyRow": {
+      "selector": "[role='table']:nth-of-type(2)",
+      "playwright": "page.getByRole('table').nth(1)",
+      "type": "role",
+      "description": "History log data row"
+    },
+    "audienceCountButton": {
+      "selector": "button:has-text('audiences')",
+      "playwright": "page.getByRole('button', { name: /audiences/ })",
+      "type": "role",
+      "description": "Audience count button in history row (e.g. '2 audiences')"
+    },
+    "paginationPrev": {
+      "selector": "button:has(img[alt='left'])",
+      "playwright": "page.locator('button').filter({ has: page.locator('img[alt=\"left\"]') })",
+      "type": "css",
+      "description": "Previous page button"
+    },
+    "paginationNext": {
+      "selector": "button:has(img[alt='right'])",
+      "playwright": "page.locator('button').filter({ has: page.locator('img[alt=\"right\"]') })",
+      "type": "css",
+      "description": "Next page button"
+    }
+  },
+
+  "createScheduler": {
+    "cancelButton": {
+      "selector": "button:has-text('Cancel')",
+      "playwright": "page.getByRole('button', { name: 'Cancel' })",
+      "type": "role",
+      "description": "Cancel wizard button"
+    },
+    "nextButton": {
+      "selector": "button:has-text('Next')",
+      "playwright": "page.getByRole('button', { name: 'Next' })",
+      "type": "role",
+      "description": "Next step button"
+    },
+    "schedulerNameInput": {
+      "selector": "input[placeholder='Enter scheduler name']",
+      "playwright": "page.getByPlaceholder('Enter scheduler name')",
+      "type": "placeholder",
+      "description": "Scheduler Name input — Step 1"
+    },
+    "descriptionInput": {
+      "selector": "input[placeholder='Enter description'], textarea[placeholder='Enter description']",
+      "playwright": "page.getByPlaceholder('Enter description')",
+      "type": "placeholder",
+      "description": "Description input — Step 1"
+    },
+    "scheduleTimeInput": {
+      "selector": "input[placeholder='00:00']",
+      "playwright": "page.getByPlaceholder('00:00').first()",
+      "type": "placeholder",
+      "description": "Schedule Time input"
+    },
+    "webhookUrlInput": {
+      "selector": "input[placeholder='Enter webhook URL']",
+      "playwright": "page.getByPlaceholder('Enter webhook URL')",
+      "type": "placeholder",
+      "description": "Webhook URL input"
+    },
+    "timeoutInput": {
+      "selector": "input[placeholder='00 : 00 : 00']",
+      "playwright": "page.getByPlaceholder('00 : 00 : 00')",
+      "type": "placeholder",
+      "description": "Timeout input (HH:MM:SS)"
+    },
+    "apiKeyInput": {
+      "selector": "input[placeholder='Enter API Key']",
+      "playwright": "page.getByPlaceholder('Enter API Key')",
+      "type": "placeholder",
+      "description": "API Key input"
+    },
+    "runTimeImmediateRadio": {
+      "selector": "label:has-text('As soon as the response is ready') input[type='radio']",
+      "playwright": "page.locator('label').filter({ hasText: 'As soon as the response is ready' }).locator('input[type=\"radio\"]')",
+      "type": "css",
+      "description": "Run Time IMMEDIATE radio"
+    },
+    "runTimeScheduledRadio": {
+      "selector": "label:has-text('Set time') input[type='radio']",
+      "playwright": "page.locator('label').filter({ hasText: 'Set time' }).locator('input[type=\"radio\"]')",
+      "type": "css",
+      "description": "Run Time SCHEDULED radio"
+    }
+  }
+}

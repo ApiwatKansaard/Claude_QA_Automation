@@ -19,7 +19,10 @@ const { apiBaseURL: API_BASE } = loadEnvConfig();
 test.describe('Scheduled Jobs API', { tag: ['@api', '@scheduled-jobs'] }, () => {
 
   test('TC-API-001: GET /v1/scheduled-jobs returns job list',
-    { tag: ['@smoke', '@P1'] },
+    {
+      annotation: { type: 'TestRail', description: 'C1548619' },
+      tag: ['@smoke', '@P1'],
+    },
     async ({ request }) => {
     const response = await request.get(`${API_BASE}/v1/scheduled-jobs`, {
       params: { page: '1', limit: '10', sortBy: 'updatedAt', sortOrder: 'desc' },
@@ -35,7 +38,10 @@ test.describe('Scheduled Jobs API', { tag: ['@api', '@scheduled-jobs'] }, () => 
   });
 
   test('TC-API-002: GET /v1/scheduled-jobs supports pagination params',
-    { tag: ['@sanity', '@P2'] },
+    {
+      annotation: { type: 'TestRail', description: 'C1548620' },
+      tag: ['@sanity', '@P2'],
+    },
     async ({ request }) => {
     const response = await request.get(`${API_BASE}/v1/scheduled-jobs`, {
       params: { page: '1', limit: '5', sortBy: 'updatedAt', sortOrder: 'desc' },
@@ -53,7 +59,10 @@ test.describe('Scheduled Jobs API', { tag: ['@api', '@scheduled-jobs'] }, () => 
   });
 
   test('TC-API-003: GET /v1/scheduled-jobs/stats/total returns total count',
-    { tag: ['@smoke', '@P1'] },
+    {
+      annotation: { type: 'TestRail', description: 'C1548619' },
+      tag: ['@smoke', '@P1'],
+    },
     async ({ request }) => {
     const response = await request.get(`${API_BASE}/v1/scheduled-jobs/stats/total`, {
       headers: getAuthHeaders(),
@@ -66,7 +75,10 @@ test.describe('Scheduled Jobs API', { tag: ['@api', '@scheduled-jobs'] }, () => 
   });
 
   test('TC-API-004: GET /v1/scheduled-jobs/stats/success-run-rate returns rate',
-    { tag: ['@regression', '@P2'] },
+    {
+      annotation: { type: 'TestRail', description: 'C1548624' },
+      tag: ['@regression', '@P2'],
+    },
     async ({ request }) => {
     const today = new Date();
     const weekAgo = new Date(today);
@@ -84,7 +96,10 @@ test.describe('Scheduled Jobs API', { tag: ['@api', '@scheduled-jobs'] }, () => 
   });
 
   test('TC-API-005: GET /v1/scheduled-jobs/stats/failure-runs returns failures',
-    { tag: ['@regression', '@P2'] },
+    {
+      annotation: { type: 'TestRail', description: 'C1548625' },
+      tag: ['@regression', '@P2'],
+    },
     async ({ request }) => {
     const today = new Date();
     const weekAgo = new Date(today);
@@ -102,7 +117,10 @@ test.describe('Scheduled Jobs API', { tag: ['@api', '@scheduled-jobs'] }, () => 
   });
 
   test('TC-API-006: Unauthenticated request should be rejected',
-    { tag: ['@smoke', '@security', '@P1'] },
+    {
+      annotation: { type: 'TestRail', description: 'C1548610' },
+      tag: ['@smoke', '@security', '@P1'],
+    },
     async ({ request }) => {
     const response = await request.get(`${API_BASE}/v1/scheduled-jobs`, {
       params: { page: '1', limit: '10' },
@@ -115,7 +133,10 @@ test.describe('Scheduled Jobs API', { tag: ['@api', '@scheduled-jobs'] }, () => 
   });
 
   test('TC-API-007: Invalid token should be rejected',
-    { tag: ['@smoke', '@security', '@P1'] },
+    {
+      annotation: { type: 'TestRail', description: 'C1548613' },
+      tag: ['@smoke', '@security', '@P1'],
+    },
     async ({ request }) => {
     const response = await request.get(`${API_BASE}/v1/scheduled-jobs`, {
       params: { page: '1', limit: '10' },
