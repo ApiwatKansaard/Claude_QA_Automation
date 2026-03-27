@@ -8,9 +8,9 @@
  *
  * Type: Regression | Priority: P1 | Tags: @destructive
  */
-import { test, expect } from '../../../src/fixtures/test-fixtures';
-import { getAuthHeaders } from '../../../src/helpers/auth.helper';
-import { loadEnvConfig } from '../../../src/config/env.config';
+import { test, expect } from '../../../../src/fixtures/test-fixtures';
+import { getAuthHeaders } from '../../../../src/helpers/auth.helper';
+import { loadEnvConfig } from '../../../../src/config/env.config';
 
 const { apiBaseURL: API_BASE } = loadEnvConfig();
 

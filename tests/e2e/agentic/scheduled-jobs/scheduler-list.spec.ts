@@ -4,7 +4,7 @@
  * Maps to TestRail: "Agentic > Scheduled Jobs > Dashboard"
  * Type: Smoke/Sanity/Regression | Priority: P1/P2 | Platform: Web
  */
-import { test, expect } from '../../fixtures';
+import { test, expect } from '../../../fixtures';
 
 test.describe('AI Task Scheduler — List Page', { tag: ['@scheduled-jobs'] }, () => {
   test.beforeEach(async ({ schedulerPage }) => {

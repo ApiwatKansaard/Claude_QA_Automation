@@ -6,8 +6,8 @@
  * Type: Smoke/Sanity/Regression | Priority: P1/P2 | Platform: API
  */
 import { test, expect } from '@playwright/test';
-import { getAuthHeaders } from '../../../src/helpers/auth.helper';
-import { loadEnvConfig } from '../../../src/config/env.config';
+import { getAuthHeaders } from '../../../../src/helpers/auth.helper';
+import { loadEnvConfig } from '../../../../src/config/env.config';
 import * as crypto from 'crypto';
 
 const { apiBaseURL: API_BASE } = loadEnvConfig();

@@ -11,8 +11,8 @@
  * Type: Smoke + Security | Priority: P1
  */
 import { test, expect } from '@playwright/test';
-import { getAuthHeaders } from '../../../src/helpers/auth.helper';
-import { loadEnvConfig } from '../../../src/config/env.config';
+import { getAuthHeaders } from '../../../../src/helpers/auth.helper';
+import { loadEnvConfig } from '../../../../src/config/env.config';
 
 const { apiBaseURL: API_BASE } = loadEnvConfig();
 

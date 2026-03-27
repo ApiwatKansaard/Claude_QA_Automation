@@ -5,7 +5,7 @@
  * C1548496–C1548507
  * Type: Smoke/Sanity/Regression | Priority: P1/P2 | Platform: Web
  */
-import { test, expect } from '../../fixtures';
+import { test, expect } from '../../../fixtures';
 
 test.describe('Scheduled Jobs — Create Job', { tag: ['@scheduled-jobs'] }, () => {
   test.beforeEach(async ({ schedulerPage }) => {

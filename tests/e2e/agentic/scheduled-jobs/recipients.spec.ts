@@ -5,8 +5,8 @@
  * C1548518–C1548528, C1549223, C1549224
  * Type: Smoke/Regression | Priority: P1/P2 | Platform: Web
  */
-import { test, expect } from '../../fixtures';
-import { createJob, deleteJob } from '../../../src/helpers/job-factory';
+import { test, expect } from '../../../fixtures';
+import { createJob, deleteJob } from '../../../../src/helpers/job-factory';
 
 let jobId: string;
 

@@ -1,0 +1,19 @@
+{
+  "sprint": "sharp-test-001",
+  "product": "agentic",
+  "feature": "scheduled-jobs",
+  "jiraProject": "AE",
+  "jiraBoardId": 32,
+  "testrailSuiteId": 5137,
+  "testrailMilestoneId": 904,
+  "dirs": {
+    "e2e": "tests/e2e/agentic/scheduled-jobs",
+    "api": "tests/api/agentic/scheduled-jobs",
+    "pages": "src/pages/agentic/scheduled-jobs",
+    "selectors": "selectors/agentic/scheduled-jobs.json",
+    "archive": "archive/agentic/sharp-test-001"
+  },
+  "previousSprint": "archive/agentic/agentic-18.2",
+  "startDate": "2026-03-01",
+  "endDate": "2026-03-27"
+}

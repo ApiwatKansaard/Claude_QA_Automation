@@ -1,10 +1,10 @@
 import { test as base } from '@playwright/test';
 import { LoginPage } from '../pages/login.page';
-import { SchedulerPage } from '../pages/scheduler.page';
-import { CreateWizardPage } from '../pages/scheduled-jobs/create-wizard.page';
-import { JobConfigPage } from '../pages/scheduled-jobs/job-config.page';
-import { RecipientsPage } from '../pages/scheduled-jobs/recipients.page';
-import { HistoryLogsPage } from '../pages/scheduled-jobs/history-logs.page';
+import { SchedulerPage } from '../pages/agentic/scheduler.page';
+import { CreateWizardPage } from '../pages/agentic/scheduled-jobs/create-wizard.page';
+import { JobConfigPage } from '../pages/agentic/scheduled-jobs/job-config.page';
+import { RecipientsPage } from '../pages/agentic/scheduled-jobs/recipients.page';
+import { HistoryLogsPage } from '../pages/agentic/scheduled-jobs/history-logs.page';
 import { CleanupHelper } from '../helpers/cleanup.helper';
 
 type TestFixtures = {
