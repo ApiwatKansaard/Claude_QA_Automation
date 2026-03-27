@@ -6,42 +6,28 @@
  * Type: Smoke/Sanity/Regression | Priority: P1/P2 | Platform: Web
  */
 import { test, expect } from '../../fixtures';
+import { createJob, deleteJob } from '../../../src/helpers/job-factory';
+
+let jobId: string;
+
+test.beforeAll(async () => {
+  jobId = await createJob('HistoryLogs');
+});
+
+test.afterAll(async () => {
+  if (jobId) await deleteJob(jobId);
+});
 
 test.describe('Scheduled Jobs — History Logs', { tag: ['@scheduled-jobs'] }, () => {
-  test.beforeEach(async ({ schedulerPage }) => {
-    await schedulerPage.goto();
-  });
-
-  /**
-   * Helper: navigate to History Log tab of first available job.
-   * Returns false if no jobs exist.
-   */
-  async function navigateToHistoryTab(
-    schedulerPage: InstanceType<typeof import('../../../src/pages/scheduler.page').SchedulerPage>,
-    page: import('@playwright/test').Page
-  ): Promise<boolean> {
-    const jobCount = await schedulerPage.getJobCount();
-    if (jobCount === 0) return false;
-    await schedulerPage.clickJob(0);
-    await page.waitForURL('**/ai-task-scheduler/management/**', { timeout: 15_000 });
-    const historyTab = page.getByRole('button', { name: 'History Log' });
-    await expect(historyTab).toBeVisible({ timeout: 10_000 });
-    await historyTab.click();
-    await page.waitForLoadState('networkidle');
-    return true;
-  }
 
   test('should display past runs with status and timestamps in history logs',
     {
       annotation: { type: 'TestRail', description: 'C1548529' },
       tag: ['@smoke', '@P1'],
     },
-    async ({ schedulerPage, historyLogsPage, page }) => {
-      const navigated = await navigateToHistoryTab(schedulerPage, page);
-      if (!navigated) {
-        test.skip(true, 'No scheduled jobs available to test');
-        return;
-      }
+    async ({ historyLogsPage, page }) => {
+      await historyLogsPage.gotoHistoryTab(jobId);
+      await page.waitForLoadState('networkidle');
 
       // Assert: history table is present
       await expect(historyLogsPage.historyTable.or(
@@ -66,12 +52,9 @@ test.describe('Scheduled Jobs — History Logs', { tag: ['@scheduled-jobs'] }, (
       annotation: { type: 'TestRail', description: 'C1548530' },
       tag: ['@smoke', '@P1'],
     },
-    async ({ schedulerPage, historyLogsPage, page }) => {
-      const navigated = await navigateToHistoryTab(schedulerPage, page);
-      if (!navigated) {
-        test.skip(true, 'No scheduled jobs available to test');
-        return;
-      }
+    async ({ historyLogsPage, page }) => {
+      await historyLogsPage.gotoHistoryTab(jobId);
+      await page.waitForLoadState('networkidle');
 
       // Act: click on a history row if one exists
       const hasTable = await historyLogsPage.historyTable.isVisible().catch(() => false);
@@ -96,12 +79,9 @@ test.describe('Scheduled Jobs — History Logs', { tag: ['@scheduled-jobs'] }, (
       annotation: { type: 'TestRail', description: 'C1548531' },
       tag: ['@smoke', '@P1'],
     },
-    async ({ schedulerPage, historyLogsPage, page }) => {
-      const navigated = await navigateToHistoryTab(schedulerPage, page);
-      if (!navigated) {
-        test.skip(true, 'No scheduled jobs available to test');
-        return;
-      }
+    async ({ historyLogsPage, page }) => {
+      await historyLogsPage.gotoHistoryTab(jobId);
+      await page.waitForLoadState('networkidle');
 
       // Act: look for failed entries and retry button
       const failedEntry = page.locator('text=FAILED').first();
@@ -133,12 +113,9 @@ test.describe('Scheduled Jobs — History Logs', { tag: ['@scheduled-jobs'] }, (
       annotation: { type: 'TestRail', description: 'C1548532' },
       tag: ['@smoke', '@P1'],
     },
-    async ({ schedulerPage, historyLogsPage, page }) => {
-      const navigated = await navigateToHistoryTab(schedulerPage, page);
-      if (!navigated) {
-        test.skip(true, 'No scheduled jobs available to test');
-        return;
-      }
+    async ({ historyLogsPage, page }) => {
+      await historyLogsPage.gotoHistoryTab(jobId);
+      await page.waitForLoadState('networkidle');
 
       // Assert: history table shows aggregated statuses
       const hasTable = await historyLogsPage.historyTable.isVisible().catch(() => false);
@@ -159,12 +136,9 @@ test.describe('Scheduled Jobs — History Logs', { tag: ['@scheduled-jobs'] }, (
       annotation: { type: 'TestRail', description: 'C1548533' },
       tag: ['@sanity', '@P2'],
     },
-    async ({ schedulerPage, historyLogsPage, page }) => {
-      const navigated = await navigateToHistoryTab(schedulerPage, page);
-      if (!navigated) {
-        test.skip(true, 'No scheduled jobs available to test');
-        return;
-      }
+    async ({ historyLogsPage, page }) => {
+      await historyLogsPage.gotoHistoryTab(jobId);
+      await page.waitForLoadState('networkidle');
 
       // Assert: history log tab is accessible and shows run data
       const hasTable = await historyLogsPage.historyTable.isVisible().catch(() => false);
@@ -180,12 +154,9 @@ test.describe('Scheduled Jobs — History Logs', { tag: ['@scheduled-jobs'] }, (
       annotation: { type: 'TestRail', description: 'C1548534' },
       tag: ['@regression', '@P2'],
     },
-    async ({ schedulerPage, historyLogsPage, page }) => {
-      const navigated = await navigateToHistoryTab(schedulerPage, page);
-      if (!navigated) {
-        test.skip(true, 'No scheduled jobs available to test');
-        return;
-      }
+    async ({ historyLogsPage, page }) => {
+      await historyLogsPage.gotoHistoryTab(jobId);
+      await page.waitForLoadState('networkidle');
 
       // Assert: either empty state or table is shown — no crashes
       const emptyState = page.locator('text=No History')
@@ -202,12 +173,9 @@ test.describe('Scheduled Jobs — History Logs', { tag: ['@scheduled-jobs'] }, (
       annotation: { type: 'TestRail', description: 'C1548535' },
       tag: ['@regression', '@P2'],
     },
-    async ({ schedulerPage, historyLogsPage, page }) => {
-      const navigated = await navigateToHistoryTab(schedulerPage, page);
-      if (!navigated) {
-        test.skip(true, 'No scheduled jobs available to test');
-        return;
-      }
+    async ({ historyLogsPage, page }) => {
+      await historyLogsPage.gotoHistoryTab(jobId);
+      await page.waitForLoadState('networkidle');
 
       // Assert: page renders without errors (no blank screen, no JS errors)
       const pageContent = await page.content();
@@ -225,12 +193,9 @@ test.describe('Scheduled Jobs — History Logs', { tag: ['@scheduled-jobs'] }, (
       annotation: { type: 'TestRail', description: 'C1548536' },
       tag: ['@regression', '@P2'],
     },
-    async ({ schedulerPage, historyLogsPage, page }) => {
-      const navigated = await navigateToHistoryTab(schedulerPage, page);
-      if (!navigated) {
-        test.skip(true, 'No scheduled jobs available to test');
-        return;
-      }
+    async ({ historyLogsPage, page }) => {
+      await historyLogsPage.gotoHistoryTab(jobId);
+      await page.waitForLoadState('networkidle');
 
       // Act: click select all checkbox if present
       const selectAllCheckbox = page.locator('thead input[type="checkbox"]')
@@ -257,12 +222,9 @@ test.describe('Scheduled Jobs — History Logs', { tag: ['@scheduled-jobs'] }, (
       annotation: { type: 'TestRail', description: 'C1548537' },
       tag: ['@regression', '@P2'],
     },
-    async ({ schedulerPage, historyLogsPage, page }) => {
-      const navigated = await navigateToHistoryTab(schedulerPage, page);
-      if (!navigated) {
-        test.skip(true, 'No scheduled jobs available to test');
-        return;
-      }
+    async ({ historyLogsPage, page }) => {
+      await historyLogsPage.gotoHistoryTab(jobId);
+      await page.waitForLoadState('networkidle');
 
       // Assert: pagination controls present (indicating multi-page support)
       const hasPrevButton = await historyLogsPage.paginationPrev.isVisible().catch(() => false);
@@ -277,12 +239,9 @@ test.describe('Scheduled Jobs — History Logs', { tag: ['@scheduled-jobs'] }, (
       annotation: { type: 'TestRail', description: 'C1549225' },
       tag: ['@smoke', '@P1'],
     },
-    async ({ schedulerPage, page }) => {
-      const navigated = await navigateToHistoryTab(schedulerPage, page);
-      if (!navigated) {
-        test.skip(true, 'No scheduled jobs available to test');
-        return;
-      }
+    async ({ historyLogsPage, page }) => {
+      await historyLogsPage.gotoHistoryTab(jobId);
+      await page.waitForLoadState('networkidle');
 
       // Assert: retry action is available in history logs
       const retryButton = page.getByRole('button', { name: /retry/i });
@@ -297,12 +256,9 @@ test.describe('Scheduled Jobs — History Logs', { tag: ['@scheduled-jobs'] }, (
       annotation: { type: 'TestRail', description: 'C1549226' },
       tag: ['@smoke', '@P1'],
     },
-    async ({ schedulerPage, historyLogsPage, page }) => {
-      const navigated = await navigateToHistoryTab(schedulerPage, page);
-      if (!navigated) {
-        test.skip(true, 'No scheduled jobs available to test');
-        return;
-      }
+    async ({ historyLogsPage, page }) => {
+      await historyLogsPage.gotoHistoryTab(jobId);
+      await page.waitForLoadState('networkidle');
 
       // Act: click Select All checkbox if available
       const selectAllCheckbox = page.locator('thead input[type="checkbox"]')
@@ -326,12 +282,9 @@ test.describe('Scheduled Jobs — History Logs', { tag: ['@scheduled-jobs'] }, (
       annotation: { type: 'TestRail', description: 'C1549227' },
       tag: ['@sanity', '@P2'],
     },
-    async ({ schedulerPage, historyLogsPage, page }) => {
-      const navigated = await navigateToHistoryTab(schedulerPage, page);
-      if (!navigated) {
-        test.skip(true, 'No scheduled jobs available to test');
-        return;
-      }
+    async ({ historyLogsPage, page }) => {
+      await historyLogsPage.gotoHistoryTab(jobId);
+      await page.waitForLoadState('networkidle');
 
       // Assert: history log tab supports pagination navigation
       const hasNextPage = await historyLogsPage.paginationNext.isVisible().catch(() => false);
