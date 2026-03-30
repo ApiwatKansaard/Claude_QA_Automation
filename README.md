@@ -1,10 +1,10 @@
 # EkoAI Playwright Test Automation
 
-> **Repository:** `convolabai/QA_Automation`  
-> **Sibling repo:** `convolabai/QA_Agent` (agents, skills, sprint data)  
-> **Workspace:** Use `qa-workspace.code-workspace` to open both repos in one VS Code window.
+> **Repository:** `ApiwatKansaard/Claude_QA_Automation`
+> **Sibling repo:** `ApiwatKansaard/Claude_QA_Agent` (agents, skills, sprint data)
+> **Last updated:** 2026-03-30 · **90 automated test cases** · Morning Brief 18.0
 
-Automated E2E and API tests for the EkoAI platform using Playwright.
+Automated E2E and API tests for the EkoAI platform using Playwright + TypeScript.
 
 ## Quick Start
 
@@ -17,169 +17,181 @@ npx playwright install --with-deps chromium
 
 # 3. Copy env and fill credentials
 cp .env.example .env
-cp environments/.env.staging.example environments/.env.staging  # fill credentials
+# Edit environments/.env.staging with your ADMIN_EMAIL + ADMIN_PASSWORD
 
-# 4. Run tests
-npm test                    # All tests (uses TEST_ENV from .env)
-npm run test:smoke          # Smoke tests only
-npm run test:e2e            # E2E tests only
-npm run test:api            # API tests only
-npm run test:headed         # Watch tests in browser
-npm run test:ui             # Playwright UI mode
+# 4. Run all tests
+npm test
+
+# 5. Run Morning Brief tests only
+npx playwright test tests/e2e/agentic/morning-brief/
+npx playwright test tests/api/agentic/morning-brief/
+
+# 6. Generate reports (ALWAYS run both after test)
+python3 scripts/generate_report.py       # Team numbers report
+python3 scripts/generate_risk_report.py  # Risk story report for meetings
+```
+
+## Test Coverage — Morning Brief 18.0
+
+| Spec File | Tests | Section | Type |
+|---|---|---|---|
+| `dashboard.spec.ts` | 9 | Dashboard (UI) | E2E |
+| `create-job.spec.ts` | 13 | Create Scheduled Job (UI) | E2E |
+| `custom-recurrence.spec.ts` | 24 | Custom Recurrence Modal | E2E |
+| `job-config.spec.ts` | 11 | Job Configuration (UI) | E2E |
+| `recipients.spec.ts` | 11 | Recipients / Audience (UI) | E2E |
+| `history-logs.spec.ts` | 10 | History Logs (UI) | E2E |
+| `widget-rendering.spec.ts` | 12 | Widget Rendering (UI/API) | E2E+API |
+| `trigger-step.api.spec.ts` | — | Trigger Step | API |
+| `process-step.api.spec.ts` | — | Process Step | API |
+| `action-step.api.spec.ts` | — | Action Step | API |
+| `callback.api.spec.ts` | — | Callback | API |
+| `security.api.spec.ts` | — | Security | API |
+| **Total** | **90** | | |
+
+## Reports
+
+After every test run, **2 HTML reports** are generated:
+
+| Report | Script | Purpose |
+|---|---|---|
+| **Team Report** | `scripts/generate_report.py` | Numbers + module breakdown (share via Slack/email) |
+| **Risk Story Report** | `scripts/generate_risk_report.py` | Risk stories for PM meetings (Amity branded, dark glassmorphism) |
+
+```bash
+# Generate both
+python3 scripts/generate_report.py reports/staging/results.json reports/staging/team-report.html "Morning Brief 18.0" staging
+python3 scripts/generate_risk_report.py reports/staging/results.json reports/staging/risk-story-report.html "Morning Brief 18.0" staging
+
+# Open in browser
+open reports/staging/team-report.html
+open reports/staging/risk-story-report.html
 ```
 
 ## Multi-Environment Support
 
-Tests can run against **dev**, **staging**, or **prod** environments.
-
-### Configuration
-
-Each environment has its own config file in `environments/`:
-
-| File | Environment | Login Method |
+| File | Environment | Login |
 |---|---|---|
 | `environments/.env.dev` | Development | cognito / basic |
 | `environments/.env.staging` | Staging | cognito |
-| `environments/.env.prod` | Production | cognito / sso |
-
-The `TEST_ENV` variable in `.env` controls which environment loads. The system:
-1. Reads `TEST_ENV` → loads `environments/.env.{env}`
-2. Validates required fields (BASE_URL, credentials)
-3. Sets per-env auth state: `playwright/.auth/{env}-user.json`
-4. Reports to per-env folder: `reports/{env}/html`
-
-### Run Commands by Environment
+| `environments/.env.prod` | Production | cognito / sso (READONLY) |
 
 ```bash
-# Environment-specific
-npm run test:dev              # All tests on dev
 npm run test:staging          # All tests on staging
-npm run test:prod             # All tests on prod (READONLY — smoke only)
-
-# Environment × Test Type
-npm run test:staging:smoke    # Smoke on staging
-npm run test:staging:sanity   # Sanity on staging
-npm run test:staging:regression  # Regression on staging
-npm run test:dev:smoke        # Smoke on dev
-npm run test:prod:smoke       # Smoke on prod
-
-# Setup auth per env
-npm run setup:staging         # Re-authenticate on staging
-npm run setup:dev             # Re-authenticate on dev
-npm run setup:prod            # Re-authenticate on prod
+npm run test:staging:smoke    # Smoke only
+npm run test:staging:regression  # Regression only
 ```
-
-### Production Safety
-
-Production config enforces `READONLY_MODE=true`. The `env-guard.helper.ts` helper:
-- `shouldSkipDestructive()` — returns `true` on prod, tests can call `test.skip()` for write operations
-- Prevents accidental data mutation on production
-
-### Login Methods
-
-Each env can use a different login strategy (`LOGIN_METHOD` in `.env.{env}`):
-
-| Method | Description |
-|---|---|
-| `cognito` | AWS Cognito email/password form (default) |
-| `basic` | Standard username/password form |
-| `sso` | SSO redirect via `SSO_PROVIDER_URL` |
 
 ## Project Structure
 
 ```
 QA_Automation/
-├── playwright.config.ts          # Playwright configuration (multi-env, projects, reporters)
-├── environments/                 # Per-environment config files
-│   ├── .env.dev                  #   Dev environment
-│   ├── .env.staging              #   Staging environment
-│   └── .env.prod                 #   Production environment (READONLY)
+├── playwright.config.ts          # Config (multi-env, projects, reporters)
+├── environments/                 # Per-environment .env files
+│   ├── .env.dev
+│   ├── .env.staging
+│   └── .env.prod
 ├── src/
 │   ├── config/
-│   │   └── env.config.ts         #   Centralized env loader & validation
+│   │   └── env.config.ts         # Centralized env loader & validation
 │   ├── pages/                    # Page Object Model (POM)
-│   │   ├── base.page.ts          #   Base class — common helpers
-│   │   └── login.page.ts         #   Login page
-│   ├── fixtures/                 # Custom test fixtures
-│   │   └── test-fixtures.ts      #   Extended test with POM injection
-│   ├── helpers/                  # Utility functions
-│   │   ├── api.helper.ts         #   API request wrapper
-│   │   ├── auth.helper.ts        #   Per-env auth state loader
-│   │   ├── data.helper.ts        #   Test data & CSV parsing
-│   │   └── env-guard.helper.ts   #   Production safety guard
-│   └── types/                    # TypeScript types
+│   │   ├── base.page.ts
+│   │   ├── login.page.ts
+│   │   └── agentic/              # Morning Brief page objects
+│   │       ├── scheduler.page.ts
+│   │       └── scheduled-jobs/
+│   │           ├── create-wizard.page.ts
+│   │           ├── job-config.page.ts
+│   │           ├── recipients.page.ts
+│   │           └── history-logs.page.ts
+│   ├── fixtures/
+│   │   └── test-fixtures.ts      # Extended test with POM injection
+│   ├── helpers/
+│   │   ├── api.helper.ts         # API request wrapper
+│   │   ├── auth.helper.ts        # Per-env auth state
+│   │   ├── data.helper.ts        # Test data & CSV parsing
+│   │   ├── env-guard.helper.ts   # Production safety guard
+│   │   ├── job-factory.ts        # Create/delete scheduled jobs via API
+│   │   └── cleanup.helper.ts     # Auto-cleanup after tests
+│   └── types/
 │       └── index.ts
 ├── tests/
-│   ├── auth.setup.ts             # Authentication setup (cognito/basic/sso)
-│   ├── e2e/                      # End-to-end UI tests
-│   │   └── scheduled-jobs/       #   Scheduled Jobs feature
-│   │       └── scheduler-list.spec.ts
-│   └── api/                      # API tests
-│       └── scheduled-jobs/       #   Scheduled Jobs API
-│           └── scheduled-jobs.api.spec.ts
-├── test-data/                    # Test data files (JSON)
-├── playwright/.auth/             # Per-env auth state (gitignored)
-│   ├── staging-user.json
-│   └── dev-user.json
-├── reports/                      # Per-env test reports (gitignored)
-│   ├── staging/html/
-│   └── dev/html/
-└── scripts/                      # Utility scripts
-    └── check-conflicts.ts        #   Cross-sprint conflict checker
+│   ├── auth.setup.ts             # Authentication setup
+│   ├── fixtures.ts               # Re-export (stable import path)
+│   ├── e2e/agentic/morning-brief/  # ★ E2E UI tests (90 cases)
+│   │   ├── dashboard.spec.ts          # 9 tests
+│   │   ├── create-job.spec.ts         # 13 tests
+│   │   ├── custom-recurrence.spec.ts  # 24 tests (★ most comprehensive)
+│   │   ├── job-config.spec.ts         # 11 tests
+│   │   ├── recipients.spec.ts         # 11 tests
+│   │   ├── history-logs.spec.ts       # 10 tests
+│   │   └── widget-rendering.spec.ts   # 12 tests
+│   └── api/agentic/morning-brief/  # API tests
+│       ├── trigger-step.api.spec.ts
+│       ├── process-step.api.spec.ts
+│       ├── action-step.api.spec.ts
+│       ├── callback.api.spec.ts
+│       └── security.api.spec.ts
+├── scripts/
+│   ├── generate_report.py        # Team HTML report generator
+│   ├── generate_risk_report.py   # Risk Story report (Amity branded)
+│   └── push_testrail.py          # Push results to TestRail
+├── reports/                      # Generated reports (gitignored)
+│   └── staging/
+│       ├── results.json
+│       ├── team-report.html
+│       ├── risk-story-report.html
+│       └── html/                 # Playwright default HTML report
+└── test-results/                 # Screenshots on failure (gitignored)
 ```
 
 ## Test Tagging Convention
 
-Tests use Playwright tags for selective execution:
-
 | Tag | Meaning | Command |
 |---|---|---|
-| `@smoke` | Critical path, run on every build | `npm run test:smoke` |
-| `@sanity` | Quick verification after deploy | `npm run test:sanity` |
-| `@regression` | Full regression suite | `npm run test:regression` |
-| `@P1` / `@P2` | Priority from TestRail | `npx playwright test --grep @P1` |
-| `@api` | API-only tests | `npm run test:api` |
-| `@security` | Security-focused tests | `npx playwright test --grep @security` |
+| `@smoke` | Critical path | `npx playwright test --grep @smoke` |
+| `@sanity` | Quick verification | `npx playwright test --grep @sanity` |
+| `@regression` | Full regression | `npx playwright test --grep @regression` |
+| `@P1` / `@P2` | Priority | `npx playwright test --grep @P1` |
+| `@morning-brief` | Morning Brief feature | `npx playwright test --grep @morning-brief` |
+| `@custom-recurrence` | Custom recurrence modal | `npx playwright test --grep @custom-recurrence` |
+| `@api` | API-only tests | `npx playwright test --grep @api` |
 
-## Page Object Model
+## Key Patterns
 
-All UI tests use POM. Each page has:
-1. **Locators** — defined as class properties (not hardcoded in tests)
-2. **Actions** — methods that perform user interactions
-3. **Assertions** — methods that verify page state
+### Cleanup Rule (MANDATORY)
+
+Every test that creates data MUST clean up:
 
 ```typescript
-// Import from fixtures (not @playwright/test) to get POM injection
-import { test, expect } from '../../src/fixtures/test-fixtures';
-
-test('example', async ({ loginPage, page }) => {
-  await loginPage.goto();
-  await loginPage.login('user@test.com', 'password');
-});
+let jobId: string;
+test.beforeAll(async () => { jobId = await createJob('SuiteName'); });
+test.afterAll(async () => { if (jobId) await deleteJob(jobId); });
 ```
 
-## Selector Strategy (Priority Order)
+### Ant Design Selectors (Pitfalls A1–A13)
 
-1. `data-testid` attributes (most stable)
-2. ARIA roles and labels (`getByRole`, `getByLabel`)
-3. Text content (`getByText`) — for user-facing strings
-4. CSS selectors — last resort for complex layouts
+See `QA_Agent/.github/skills/playwright-automator/SKILL.md` for 13 documented pitfalls including:
+- **A8:** Ant Design Select — use React fiber `onChange()`, not `.click()`
+- **A9:** Day button state — CSS class `bg-primary`, not `aria-pressed`
+- **A10:** Modal buttons inside `.ant-modal-content`, no `.ant-modal-footer`
+- **A11:** ALWAYS inspect platform DOM before writing selectors
 
-## Integration with QA Ops Director
+### TestRail Integration
 
-This test suite integrates with the QA lifecycle managed in the sibling `QA_Agent` repo:
-- Test cases originate from `/qa:test-plan` → TestRail CSV (in QA_Agent)
-- The `playwright-automator` agent reads CSV and generates tests here
-- The `automation-reviewer` agent reviews code across sprints
-- Test results can be mapped back to TestRail cases
-
-## Sprint Workflow (via Multi-Root Workspace)
-
-Open `qa-workspace.code-workspace` and use the `playwright-automator` agent:
-
+Every test has a TestRail annotation:
+```typescript
+test('should do something', {
+  annotation: { type: 'TestRail', description: 'C1552304' },
+  tag: ['@smoke', '@P1'],
+}, async ({ page }) => { ... });
 ```
-/auto:generate [sprint-folder]    → Generate tests from test cases (reads CSV from QA_Agent)
-/auto:inspect [URL]               → Inspect page for selectors
-/auto:review                      → Review code quality + conflicts
-/auto:run [tag]                   → Run tests by tag
-```
+
+## Integration with QA Agent
+
+| Agent | Purpose |
+|---|---|
+| `qa-ops-director` | Test plans, AC writing, bug reports, TestRail |
+| `playwright-automator` | Generate/run/review Playwright tests |
+| `automation-reviewer` | Review test quality, detect conflicts |
+| `qa-html-report` | Generate team + risk story HTML reports |
