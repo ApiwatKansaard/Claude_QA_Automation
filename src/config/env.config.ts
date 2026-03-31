@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 /**
  * Supported environments — maps to environments/.env.{name}
  */
-export type Environment = 'dev' | 'staging' | 'prod';
+export type Environment = 'dev' | 'staging' | 'prod' | 'eko-dev';
 
 export type LoginMethod = 'cognito' | 'basic' | 'sso';
 
@@ -27,6 +27,7 @@ export interface EnvConfig {
 export function resolveEnv(): Environment {
   const raw = process.env.TEST_ENV?.toLowerCase().trim();
   if (raw === 'dev' || raw === 'development') return 'dev';
+  if (raw === 'eko-dev') return 'eko-dev';
   if (raw === 'prod' || raw === 'production') return 'prod';
   return 'staging';
 }

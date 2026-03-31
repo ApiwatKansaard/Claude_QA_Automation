@@ -63,6 +63,22 @@ export default defineConfig({
       },
     },
 
+    // --- MITY / eko-dev Tests (SharePoint KM) ---
+    {
+      name: 'mity-setup',
+      testMatch: /auth-eko-dev\.setup\.ts/,
+    },
+    {
+      name: 'mity',
+      testDir: './tests/e2e/agentic/sharepoint-km',
+      dependencies: ['mity-setup'],
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: 'https://eko-dev.ekoapp.com',
+        storageState: './playwright/.auth/eko-dev-user.json',
+      },
+    },
+
     // --- Mobile Tests (disabled — enable with: npx playwright test --project=mobile) ---
     // {
     //   name: 'mobile',
