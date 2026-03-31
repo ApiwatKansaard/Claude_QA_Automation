@@ -2,7 +2,7 @@
 
 > **Repository:** `ApiwatKansaard/Claude_QA_Automation`
 > **Sibling repo:** `ApiwatKansaard/Claude_QA_Agent` (agents, skills, sprint data)
-> **Last updated:** 2026-03-30 · **90 automated test cases** · Morning Brief 18.0
+> **Last updated:** 2026-03-30 · **143 automated test cases** · Morning Brief 18.0
 
 Automated E2E and API tests for the EkoAI platform using Playwright + TypeScript.
 
@@ -42,12 +42,12 @@ python3 scripts/generate_risk_report.py  # Risk story report for meetings
 | `recipients.spec.ts` | 11 | Recipients / Audience (UI) | E2E |
 | `history-logs.spec.ts` | 10 | History Logs (UI) | E2E |
 | `widget-rendering.spec.ts` | 12 | Widget Rendering (UI/API) | E2E+API |
-| `trigger-step.api.spec.ts` | — | Trigger Step | API |
-| `process-step.api.spec.ts` | — | Process Step | API |
-| `action-step.api.spec.ts` | — | Action Step | API |
-| `callback.api.spec.ts` | — | Callback | API |
-| `security.api.spec.ts` | — | Security | API |
-| **Total** | **90** | | |
+| `trigger-step.api.spec.ts` | 10 | Trigger Step | API |
+| `process-step.api.spec.ts` | 12 | Process Step | API |
+| `action-step.api.spec.ts` | 11 | Action Step | API |
+| `callback.api.spec.ts` | 10 | Callback | API |
+| `security.api.spec.ts` | 10 | Security | API |
+| **Total** | **143** | | |
 
 ## Reports
 

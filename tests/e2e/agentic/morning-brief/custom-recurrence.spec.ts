@@ -35,6 +35,31 @@
 import { test, expect } from '../../../fixtures';
 import { createJob, deleteJob } from '../../../../src/helpers/job-factory';
 
+// ─── Dynamic day helpers (tests must not hardcode day-of-week) ──────────────
+
+const DAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']; // Sun=0 ... Sat=6
+const DAY_NAMES  = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+/** Get today's day-of-week index (0=Sun, 1=Mon, ..., 6=Sat) */
+function todayDow(): number { return new Date().getDay(); }
+
+/** Get today's day abbreviation for the "Repeat on" buttons (S/M/T/W/T/F/S) */
+function todayLabel(): string { return DAY_LABELS[todayDow()]; }
+
+/** Get today's day name (Monday, Tuesday, ...) */
+function todayName(): string { return DAY_NAMES[todayDow()]; }
+
+/** For duplicate letters (T=Tue index 0, T=Thu index 1; S=Sun index 0, S=Sat index 1),
+ *  get the nth() index to use with getDayButton(). */
+function todayButtonIndex(): number {
+  const dow = todayDow();
+  // T appears at positions 2 (Tue) and 4 (Thu) → Tue=nth(0), Thu=nth(1)
+  if (dow === 4) return 1; // Thursday = second "T"
+  // S appears at positions 0 (Sun) and 6 (Sat) → Sun=nth(0), Sat=nth(1)
+  if (dow === 6) return 1; // Saturday = second "S"
+  return 0;
+}
+
 // ─── Locator helpers ─────────────────────────────────────────────────────────
 
 /** Click the Repeat dropdown trigger and select "Custom..." to open the modal.
@@ -298,23 +323,24 @@ test.describe('Morning Brief — Custom Recurrence Modal', {
       // Set weekly
       await selectModalUnit(page, 'week');
 
-      // Day order: S(0) M(1) T(2:Tue) W(3) T(4:Thu) F(5) S(6:Sat)
-      // M is pre-selected by default. Click W and F to add them.
-      const monday    = getDayButton(page, 'M');
-      const wednesday = getDayButton(page, 'W');
-      const friday    = getDayButton(page, 'F');
+      // Today's day is pre-selected by default (dynamic, not always Monday)
+      const todayBtn = getDayButton(page, todayLabel(), todayButtonIndex());
+      expect(await isDaySelected(todayBtn), `${todayName()} should be pre-selected (today)`).toBe(true);
 
-      await wednesday.click(); // add Wed
-      await friday.click();    // add Fri
+      // Add Wednesday and Friday (if today is W or F, pick different days)
+      const extraDays = ['W', 'F'].filter(d => d !== todayLabel());
+      if (extraDays.length < 2) extraDays.push('S'); // fallback if today is W or F
+      for (const d of extraDays) {
+        await getDayButton(page, d).click();
+      }
 
-      // Assert selected state via CSS class bg-primary (NOT aria-pressed)
-      const monSelected = await isDaySelected(monday);
-      const wedSelected = await isDaySelected(wednesday);
-      const friSelected = await isDaySelected(friday);
-      test.info().annotations.push({ type: 'note', description: `M=${monSelected} W=${wedSelected} F=${friSelected}` });
-      expect(monSelected, 'Monday should be selected (pre-selected default)').toBe(true);
-      expect(wedSelected, 'Wednesday should be selected after click').toBe(true);
-      expect(friSelected, 'Friday should be selected after click').toBe(true);
+      // Assert: today's day + extra days are all selected
+      const todaySel = await isDaySelected(todayBtn);
+      test.info().annotations.push({ type: 'note', description: `Today=${todayName()}=${todaySel}, extras=${extraDays.join(',')}` });
+      expect(todaySel, `${todayName()} should still be selected`).toBe(true);
+      for (const d of extraDays) {
+        expect(await isDaySelected(getDayButton(page, d)), `${d} should be selected after click`).toBe(true);
+      }
 
       // Confirm
       await getConfirmButton(page).click();
@@ -371,19 +397,19 @@ test.describe('Morning Brief — Custom Recurrence Modal', {
 
       await selectModalUnit(page, 'week');
 
-      // M is pre-selected by default (only 1 day selected)
-      const monday = getDayButton(page, 'M');
-      expect(await isDaySelected(monday), 'Monday should be pre-selected').toBe(true);
+      // Today's day is pre-selected by default (only 1 day selected)
+      const defaultDay = getDayButton(page, todayLabel(), todayButtonIndex());
+      expect(await isDaySelected(defaultDay), `${todayName()} should be pre-selected`).toBe(true);
 
-      // Click M to attempt deselecting it (it's the only selected day)
-      await monday.click();
+      // Click today's day to attempt deselecting it (it's the only selected day)
+      await defaultDay.click();
       await page.waitForTimeout(300);
 
-      // Assert: M should STILL be selected — UI prevents deselecting the last day
-      const stillSelected = await isDaySelected(monday);
+      // Assert: should STILL be selected — UI prevents deselecting the last day
+      const stillSelected = await isDaySelected(defaultDay);
       test.info().annotations.push({
         type: 'note',
-        description: `Monday after click-to-deselect: selected=${stillSelected} (expected=true, min 1 enforced)`,
+        description: `${todayName()} after click-to-deselect: selected=${stillSelected} (expected=true, min 1 enforced)`,
       });
       expect(stillSelected, 'Last selected day cannot be deselected — minimum 1 day enforced').toBe(true);
     }
@@ -536,10 +562,10 @@ test.describe('Morning Brief — Custom Recurrence Modal', {
 
       await openCustomModal(page);
 
-      // Make changes in modal: set 2 weeks, click M + W
+      // Make changes in modal: set week, add W (today is already pre-selected)
       await selectModalUnit(page, 'week');
-      await getDayButton(page, 'M').click();
-      await getDayButton(page, 'W').click();
+      const cancelExtraDay = todayLabel() === 'W' ? 'F' : 'W';
+      await getDayButton(page, cancelExtraDay).click();
 
       // Cancel
       await getCancelButton(page).click();
@@ -596,11 +622,12 @@ test.describe('Morning Brief — Custom Recurrence Modal', {
         await page.waitForLoadState('networkidle');
 
         // Set custom: weekly Mon/Wed/Fri
+        // Open modal and select today + W + F (dynamic days)
         await openCustomModal(page);
         await selectModalUnit(page, 'week');
-        await getDayButton(page, 'M').click();
-        await getDayButton(page, 'W').click();
-        await getDayButton(page, 'F').click();
+        // Today is already pre-selected; add W and F if they're different from today
+        const saveDays = ['W', 'F'].filter(d => d !== todayLabel());
+        for (const d of saveDays) await getDayButton(page, d).click();
         await getConfirmButton(page).click();
         await expect(page.locator('.ant-modal-content')).not.toBeVisible({ timeout: 5_000 });
 
@@ -619,18 +646,16 @@ test.describe('Morning Brief — Custom Recurrence Modal', {
         test.info().annotations.push({ type: 'note', description: `Unit on re-open: ${unitText}` });
         expect(unitText?.toLowerCase()).toMatch(/week/i);
 
-        // Assert: M, W, F are pre-selected
-        const monday    = getDayButton(page, 'M');
-        const wednesday = getDayButton(page, 'W');
-        const friday    = getDayButton(page, 'F');
-        const monSel = await isDaySelected(monday);
-        const wedSel = await isDaySelected(wednesday);
-        const friSel = await isDaySelected(friday);
-        test.info().annotations.push({ type: 'note', description: `M=${monSel} W=${wedSel} F=${friSel} (bg-primary class)` });
-        // All three should be pre-selected from save
-        expect(monSel, 'Monday should be pre-selected').toBe(true);
-        expect(wedSel, 'Wednesday should be pre-selected').toBe(true);
-        expect(friSel, 'Friday should be pre-selected').toBe(true);
+        // Assert: saved days are pre-selected (today + extra days)
+        const todayBtnSel = await isDaySelected(getDayButton(page, todayLabel(), todayButtonIndex()));
+        const extraSels = await Promise.all(saveDays.map(d => isDaySelected(getDayButton(page, d))));
+        const monSel = todayBtnSel;
+        const wedSel = extraSels[0] ?? true;
+        const friSel = extraSels[1] ?? true;
+        test.info().annotations.push({ type: 'note', description: `today=${monSel} extras=${wedSel},${friSel} (bg-primary)` });
+        expect(monSel, `${todayName()} should be pre-selected from save`).toBe(true);
+        expect(wedSel, 'Extra day 1 should be pre-selected from save').toBe(true);
+        expect(friSel, 'Extra day 2 should be pre-selected from save').toBe(true);
       } finally {
         await deleteJob(jobId);
       }
@@ -653,9 +678,10 @@ test.describe('Morning Brief — Custom Recurrence Modal', {
         // Change to custom weekly Mon/Wed/Fri
         await openCustomModal(page);
         await selectModalUnit(page, 'week');
-        await getDayButton(page, 'M').click();
-        await getDayButton(page, 'W').click();
-        await getDayButton(page, 'F').click();
+        // Today is pre-selected; add W and F if different from today
+        for (const d of ['W', 'F'].filter(d => d !== todayLabel())) {
+          await getDayButton(page, d).click();
+        }
         await getConfirmButton(page).click();
         await expect(page.locator('.ant-modal-content')).not.toBeVisible({ timeout: 5_000 });
 
@@ -699,31 +725,29 @@ test.describe('Morning Brief — Custom Recurrence Modal', {
       await gotoWizard(page);
       await openCustomModal(page);
 
-      // Default: week unit, Monday pre-selected
-      const monday = getDayButton(page, 'M');
-      expect(await isDaySelected(monday)).toBe(true);
+      // Today's day is pre-selected by default
+      const defaultDay = getDayButton(page, todayLabel(), todayButtonIndex());
+      expect(await isDaySelected(defaultDay)).toBe(true);
 
-      // Click M to try deselecting it (it is the ONLY selected day)
-      await monday.click();
+      // Try deselecting it (only selected day) — should NOT work
+      await defaultDay.click();
       await page.waitForTimeout(300);
 
-      // UI should prevent 0-day state — Monday remains selected
-      const stillSelected = await isDaySelected(monday);
+      const stillSelected = await isDaySelected(defaultDay);
       test.info().annotations.push({
         type: 'note',
-        description: `Monday after deselect attempt: ${stillSelected}`,
+        description: `${todayName()} after deselect attempt: ${stillSelected}`,
       });
       expect(stillSelected, 'Cannot deselect last day — min 1 day enforced').toBe(true);
 
-      // Add another day, then deselect Monday — should succeed since 1 day remains
-      await getDayButton(page, 'W').click(); // add Wednesday
-      await monday.click(); // now deselect Monday (Wednesday still active)
+      // Add Wednesday, then deselect today — should succeed (W remains)
+      const otherDay = todayLabel() === 'W' ? 'F' : 'W';
+      await getDayButton(page, otherDay).click();
+      await defaultDay.click();
       await page.waitForTimeout(300);
 
-      const mondayAfter = await isDaySelected(monday);
-      const wednesdayStill = await isDaySelected(getDayButton(page, 'W'));
-      expect(mondayAfter).toBe(false);
-      expect(wednesdayStill).toBe(true);
+      expect(await isDaySelected(defaultDay)).toBe(false);
+      expect(await isDaySelected(getDayButton(page, otherDay))).toBe(true);
     }
   );
 
@@ -900,11 +924,11 @@ test.describe('Morning Brief — Custom Recurrence Modal', {
       await selectModalUnit(page, 'year');
       await expect(repeatOnLabel).not.toBeVisible();
 
-      // Switch back to week → reappears with M pre-selected
+      // Switch back to week → reappears with today's day pre-selected
       await selectModalUnit(page, 'week');
       await expect(repeatOnLabel).toBeVisible({ timeout: 3_000 });
-      const monday = getDayButton(page, 'M');
-      expect(await isDaySelected(monday), 'Monday should be re-selected after switching back to week').toBe(true);
+      const todayBtn = getDayButton(page, todayLabel(), todayButtonIndex());
+      expect(await isDaySelected(todayBtn), `${todayName()} should be re-selected after switching back to week`).toBe(true);
     }
   );
 
@@ -990,11 +1014,14 @@ test.describe('Morning Brief — Custom Recurrence Modal', {
         const values = options.map((o: any) => o.value);
         expect(values).toContain('none');
         expect(values).toContain('daily');
-        expect(values).toContain('weekly_1');
-        expect(values).toContain('monthly_5_Monday');
-        expect(values).toContain('annually_03_30');
+        // Weekly/Monthly/Annually values are dynamic based on today's date
+        const hasWeekly = values.some((v: string) => v.startsWith('weekly_'));
+        const hasMonthly = values.some((v: string) => v.startsWith('monthly_'));
+        const hasAnnually = values.some((v: string) => v.startsWith('annually_'));
+        expect(hasWeekly, 'Should have a weekly_N option').toBe(true);
+        expect(hasMonthly, 'Should have a monthly_N_Day option').toBe(true);
+        expect(hasAnnually, 'Should have an annually_MM_DD option').toBe(true);
         expect(values).toContain('weekday');
-        // 'custom' or 'custom_configured' should be present
         const hasCustom = values.includes('custom') || values.includes('custom_configured');
         expect(hasCustom, 'Dropdown should include Custom... option').toBe(true);
       } finally {
@@ -1038,8 +1065,11 @@ test.describe('Morning Brief — Custom Recurrence Modal', {
         const unitText = await modal.locator('.ant-select-selector').textContent();
         expect(unitText?.toLowerCase()).toMatch(/week/i);
 
-        // Assert: Monday is still selected
-        expect(await isDaySelected(getDayButton(page, 'M'))).toBe(true);
+        // Assert: today's day is still selected (default day when modal was first opened)
+        const dayBtn = getDayButton(page, todayLabel(), todayButtonIndex());
+        const daySel = await isDaySelected(dayBtn);
+        test.info().annotations.push({ type: 'note', description: `${todayName()} selected on re-open: ${daySel}` });
+        expect(daySel, `${todayName()} should be selected on re-open`).toBe(true);
       } finally {
         await deleteJob(jobId);
       }
