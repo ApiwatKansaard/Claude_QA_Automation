@@ -40,28 +40,43 @@ const NO_DATA_QUESTION = 'ในกระบวนการผลิตมีก
 // Dropdown menu after clicking +:
 //   "Add photos & files" / "Internal Library" / "SharePoint"
 
-/** Click the + button area to open the add menu.
- *  The + icon is a clickable div to the LEFT of the textbox.
- *  Strategy: find the textbox, click 30px to its left.
+/** Click the + button to open the add menu.
+ *  DOM snapshot: button [cursor=pointer] with img child, directly before textbox "Ask me anything"
+ *  Strategy: find the textbox, then locate the button sibling before it.
  */
 async function openAddMenu(page: Page) {
-  const input = page.getByPlaceholder('Ask me anything');
-  await expect(input).toBeVisible({ timeout: 10_000 });
-  const box = await input.boundingBox();
-  if (!box) throw new Error('Input box not found');
-  // Click to the left of the input to hit the + icon area
-  await page.mouse.click(box.x - 30, box.y + box.height / 2);
-  await page.waitForTimeout(500);
-  // Verify dropdown appeared
-  await expect(page.getByText('Add photos & files')).toBeVisible({ timeout: 3_000 });
+  const textbox = page.getByPlaceholder('Ask me anything');
+  await expect(textbox).toBeVisible({ timeout: 10_000 });
+  const box = await textbox.boundingBox();
+  if (!box) throw new Error('Textbox not found');
+
+  // The + button is immediately to the left of the textbox (same row)
+  // Click 20px left of the textbox left edge, vertically centered
+  await page.mouse.click(box.x - 20, box.y + box.height / 2);
+  await page.waitForTimeout(800);
+
+  // Verify dropdown appeared (DOM renders as menu > menuitem roles)
+  const menuVisible = await page.getByRole('menuitem', { name: /add photos/i }).isVisible({ timeout: 3_000 }).catch(() => false);
+
+  if (!menuVisible) {
+    // Retry: click slightly more to the left
+    await page.mouse.click(box.x - 35, box.y + box.height / 2);
+    await page.waitForTimeout(800);
+  }
+
+  await expect(page.getByRole('menuitem', { name: /add photos/i })).toBeVisible({ timeout: 5_000 });
 }
 
 /** Select SharePoint mode from the + menu */
 async function selectSharePoint(page: Page) {
   await openAddMenu(page);
-  await page.getByText('SharePoint', { exact: true }).click();
+  // Click the SharePoint menuitem in the dropdown (not the sidebar nav)
+  const spItems = page.getByRole('menuitem', { name: /sharepoint/i });
+  // The dropdown menuitem is the last one (sidebar "Agentic AI" may also have menuitem)
+  await spItems.last().click();
   await page.waitForTimeout(500);
 }
+
 
 /** Type a question and send it via Enter key */
 async function askQuestion(page: Page, question: string) {
@@ -74,16 +89,37 @@ async function askQuestion(page: Page, question: string) {
 }
 
 /** Wait for bot response to complete (disclaimer appears at end) */
-async function waitForResponse(page: Page, timeout = 30_000) {
+async function waitForResponse(page: Page, timeout = 60_000) {
   await expect(page.getByText('Mity can still miss', { exact: false })).toBeVisible({ timeout });
 }
 
-/** Check if "SharePoint" badge is visible near the input */
+/** Check if "SharePoint" badge/text is visible near the input area.
+ *  DOM: After selecting SharePoint from dropdown, a badge element appears
+ *  next to the textbox (sibling of the + button).
+ *  The badge is: generic > img + generic: "SharePoint"
+ *  Strategy: check if there's a visible "SharePoint" text inside the main content area (not sidebar).
+ */
 async function isSharePointBadgeVisible(page: Page): Promise<boolean> {
-  // Badge text is "SharePoint" (not uppercase "SHAREPOINT")
-  // It appears as a clickable div with img + text near the textbox
-  const badge = page.getByText('SharePoint', { exact: true });
-  return badge.isVisible().catch(() => false);
+  // Walk up 5 levels from textbox, search each level for "SharePoint" text
+  return page.evaluate(() => {
+    const textbox = document.querySelector('[placeholder="Ask me anything"]');
+    if (!textbox) return false;
+    let el: Element | null = textbox;
+    for (let i = 0; i < 5; i++) {
+      el = el?.parentElement ?? null;
+      if (!el) break;
+      const allText = Array.from(el.querySelectorAll('*'));
+      for (const child of allText) {
+        const t = child.textContent?.trim();
+        const rect = child.getBoundingClientRect();
+        // "SharePoint" badge near the compose area (not in nav sidebar x < 100)
+        if (t === 'SharePoint' && rect.x > 100 && rect.width < 200 && rect.width > 10) {
+          return true;
+        }
+      }
+    }
+    return false;
+  });
 }
 
 /** Start a new chat */
@@ -94,6 +130,9 @@ async function startNewChat(page: Page) {
 
 // ─── Tests ──────────────────────────────────────────────────────────────────
 
+// Serial: LLM responses take 10-60s, tests must not interfere
+test.describe.configure({ mode: 'default' });
+
 test.describe('SharePoint KM Chat', {
   tag: ['@sharepoint-km', '@agentic'],
 }, () => {
@@ -101,8 +140,15 @@ test.describe('SharePoint KM Chat', {
   test.beforeEach(async ({ page }) => {
     await page.goto(AGENTIC_URL);
     await page.waitForLoadState('networkidle');
-    // Ensure we're on Agentic AI page
-    await expect(page.locator('[role="textbox"][aria-placeholder="Ask me anything"], textarea[placeholder="Ask me anything"]')).toBeVisible({ timeout: 15_000 });
+
+    // Landing page may not have textarea — click "New Chat" first if needed
+    const hasInput = await page.getByPlaceholder('Ask me anything').isVisible({ timeout: 3_000 }).catch(() => false);
+    if (!hasInput) {
+      await page.getByRole('link', { name: 'New Chat' }).click();
+      await page.waitForLoadState('networkidle');
+    }
+
+    await expect(page.getByPlaceholder('Ask me anything')).toBeVisible({ timeout: 10_000 });
   });
 
   // ═══════════════════════════════════════════════════════════════════════════
