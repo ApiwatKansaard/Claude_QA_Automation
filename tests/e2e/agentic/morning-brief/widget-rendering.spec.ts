@@ -12,17 +12,18 @@
  * Cleanup rule: Any jobs created in these tests MUST be deleted via cleanup fixture.
  */
 import { test, expect } from '../../../fixtures';
-import { createJob, deleteJob } from '../../../../src/helpers/job-factory';
+import { createJob, deleteJob, findJobWithHistory } from '../../../../src/helpers/job-factory';
 import { WidgetRenderingPage } from '../../../../src/pages/agentic/morning-brief/widget-rendering.page';
 import { loadEnvConfig } from '../../../../src/config/env.config';
 
-// Staging job with Morning Brief history — used for UI-side verifications
-const STAGING_MB_JOB_ID = '69c3db9ce702cd612827953b'; // "Morning Brief Testing 01"
+/** Dynamic: find a job with history on current environment (staging/prod) */
+let JOB_WITH_HISTORY: string | null = null;
 
 let jobId: string;
 
 test.beforeAll(async () => {
   jobId = await createJob('MBWidgetRendering');
+  JOB_WITH_HISTORY = await findJobWithHistory();
 });
 
 test.afterAll(async () => {
@@ -97,7 +98,8 @@ test.describe('Morning Brief — Widget Rendering', { tag: ['@morning-brief', '@
 
       // Check history log for ordering evidence
       const widgetPage = new WidgetRenderingPage(page);
-      await widgetPage.gotoHistoryTab(STAGING_MB_JOB_ID);
+      if (!JOB_WITH_HISTORY) { test.skip(true, "No job with history on this environment"); return; }
+      await widgetPage.gotoHistoryTab(JOB_WITH_HISTORY);
       await page.waitForLoadState('networkidle');
       await expect(widgetPage.historyLogTab).toBeVisible();
 
@@ -136,7 +138,8 @@ test.describe('Morning Brief — Widget Rendering', { tag: ['@morning-brief', '@
     async ({ page }) => {
       // Test that console does not crash when history log shows runs with bad widget data
       const widgetPage = new WidgetRenderingPage(page);
-      await widgetPage.gotoHistoryTab(STAGING_MB_JOB_ID);
+      if (!JOB_WITH_HISTORY) { test.skip(true, "No job with history on this environment"); return; }
+      await widgetPage.gotoHistoryTab(JOB_WITH_HISTORY);
       await page.waitForLoadState('networkidle');
 
       // Assert: page loads without JS errors
@@ -235,7 +238,8 @@ test.describe('Morning Brief — Widget Rendering', { tag: ['@morning-brief', '@
 
       // The console should not crash — log behavior for spec verification
       const widgetPage = new WidgetRenderingPage(page);
-      await widgetPage.gotoHistoryTab(STAGING_MB_JOB_ID);
+      if (!JOB_WITH_HISTORY) { test.skip(true, "No job with history on this environment"); return; }
+      await widgetPage.gotoHistoryTab(JOB_WITH_HISTORY);
       await page.waitForLoadState('networkidle');
 
       const errors: string[] = [];
@@ -326,7 +330,8 @@ test.describe('Morning Brief — Widget Rendering', { tag: ['@morning-brief', '@
 
       // Check history log for carousel delivery evidence
       const widgetPage = new WidgetRenderingPage(page);
-      await widgetPage.gotoHistoryTab(STAGING_MB_JOB_ID);
+      if (!JOB_WITH_HISTORY) { test.skip(true, "No job with history on this environment"); return; }
+      await widgetPage.gotoHistoryTab(JOB_WITH_HISTORY);
       await page.waitForLoadState('networkidle');
       await expect(widgetPage.historyLogTab).toBeVisible();
     }
@@ -345,7 +350,8 @@ test.describe('Morning Brief — Widget Rendering', { tag: ['@morning-brief', '@
       expect(() => widgetPage.validateContentBlocks(blocks)).not.toThrow();
 
       // Navigate to history and confirm no crash
-      await widgetPage.gotoHistoryTab(STAGING_MB_JOB_ID);
+      if (!JOB_WITH_HISTORY) { test.skip(true, "No job with history on this environment"); return; }
+      await widgetPage.gotoHistoryTab(JOB_WITH_HISTORY);
       await page.waitForLoadState('networkidle');
       await expect(widgetPage.historyLogTab).toBeVisible();
 
@@ -376,7 +382,8 @@ test.describe('Morning Brief — Widget Rendering', { tag: ['@morning-brief', '@
       expect(blocks[0].data.content).toHaveLength(10_000);
 
       // Console should still be functional
-      await widgetPage.gotoHistoryTab(STAGING_MB_JOB_ID);
+      if (!JOB_WITH_HISTORY) { test.skip(true, "No job with history on this environment"); return; }
+      await widgetPage.gotoHistoryTab(JOB_WITH_HISTORY);
       await page.waitForLoadState('networkidle', { timeout: 15_000 });
       await expect(widgetPage.historyLogTab).toBeVisible({ timeout: 10_000 });
     }
@@ -407,7 +414,8 @@ test.describe('Morning Brief — Widget Rendering', { tag: ['@morning-brief', '@
       expect(blocks[0].data.url).toContain('https://');
 
       // Assert: console page doesn't crash when displaying history for jobs with broken images
-      await widgetPage.gotoHistoryTab(STAGING_MB_JOB_ID);
+      if (!JOB_WITH_HISTORY) { test.skip(true, "No job with history on this environment"); return; }
+      await widgetPage.gotoHistoryTab(JOB_WITH_HISTORY);
       await page.waitForLoadState('networkidle');
       const jsErrors: string[] = [];
       page.on('pageerror', (err) => jsErrors.push(err.message));

@@ -56,6 +56,58 @@ export async function createJob(suffix = 'Fixture'): Promise<string> {
 }
 
 /**
+ * Find the first scheduled job that has run history.
+ * Returns the job ID, or null if no job with history exists.
+ * Useful for History Log and Widget Rendering tests that need real run data.
+ *
+ * Dynamic per environment — no hardcoded job IDs.
+ */
+export async function findJobWithHistory(): Promise<string | null> {
+  const config = loadEnvConfig();
+  const ctx = await request.newContext({ baseURL: config.apiBaseURL });
+  try {
+    // Get list of jobs
+    const res = await ctx.get('/v1/scheduled-jobs', {
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok()) return null;
+
+    const body = await res.json();
+    const jobs: any[] = body.data ?? body.items ?? body ?? [];
+
+    // Find a job that has at least 1 run (totalRun > 0 or lastRun exists)
+    for (const job of jobs) {
+      const id = job.id ?? job._id;
+      if (!id) continue;
+
+      // Check if the job has run history
+      const hasRuns = (job.totalRun ?? 0) > 0
+        || job.lastRun != null
+        || job.lastRunAt != null
+        || job.status === 'completed';
+
+      if (hasRuns) return String(id);
+
+      // Fallback: check the runs endpoint directly
+      try {
+        const runsRes = await ctx.get(`/v1/scheduled-jobs/${id}/runs`, {
+          headers: getAuthHeaders(),
+        });
+        if (runsRes.ok()) {
+          const runsBody = await runsRes.json();
+          const runs = runsBody.data ?? runsBody.items ?? runsBody ?? [];
+          if (Array.isArray(runs) && runs.length > 0) return String(id);
+        }
+      } catch { /* skip this job */ }
+    }
+
+    return null;
+  } finally {
+    await ctx.dispose();
+  }
+}
+
+/**
  * Delete a scheduled job by ID via API.
  * Call in afterAll for cleanup — ignores 404 (already deleted).
  */

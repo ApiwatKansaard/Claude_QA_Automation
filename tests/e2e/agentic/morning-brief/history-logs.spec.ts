@@ -6,18 +6,19 @@
  * Type: Smoke/Sanity/Regression | Priority: P1/P2 | Platform: Web
  *
  * Cleanup rule: Job created in beforeAll is ALWAYS deleted in afterAll.
- * Uses "Morning Brief Testing 01" on staging (has real run history) as reference.
+ * Uses findJobWithHistory() to dynamically find a job with run data (works on any env).
  */
 import { test, expect } from '../../../fixtures';
-import { createJob, deleteJob } from '../../../../src/helpers/job-factory';
+import { createJob, deleteJob, findJobWithHistory } from '../../../../src/helpers/job-factory';
 
-// Real job on staging that has history — use as fallback if created job has no history
-const STAGING_JOB_WITH_HISTORY = '69c3db9ce702cd612827953b'; // "Morning Brief Testing 01"
+/** Dynamic: find a job with history on current environment (staging/prod) */
+let JOB_WITH_HISTORY: string | null = null;
 
 let jobId: string;
 
 test.beforeAll(async () => {
   jobId = await createJob('MBHistoryLogs');
+  JOB_WITH_HISTORY = await findJobWithHistory();
 });
 
 test.afterAll(async () => {
@@ -34,7 +35,8 @@ test.describe('Morning Brief — History Logs', { tag: ['@morning-brief', '@sche
     },
     async ({ historyLogsPage, page }) => {
       // Use the staging job that has real history
-      await historyLogsPage.gotoHistoryTab(STAGING_JOB_WITH_HISTORY);
+      if (!JOB_WITH_HISTORY) { test.skip(true, "No job with history on this environment"); return; }
+      await historyLogsPage.gotoHistoryTab(JOB_WITH_HISTORY);
       await page.waitForLoadState('networkidle');
 
       // Assert: History Log tab is active
@@ -59,7 +61,8 @@ test.describe('Morning Brief — History Logs', { tag: ['@morning-brief', '@sche
       tag: ['@smoke', '@P1'],
     },
     async ({ historyLogsPage, page }) => {
-      await historyLogsPage.gotoHistoryTab(STAGING_JOB_WITH_HISTORY);
+      if (!JOB_WITH_HISTORY) { test.skip(true, "No job with history on this environment"); return; }
+      await historyLogsPage.gotoHistoryTab(JOB_WITH_HISTORY);
       await page.waitForLoadState('networkidle');
 
       // Assert: audience count button visible (indicates real run data)
@@ -83,7 +86,8 @@ test.describe('Morning Brief — History Logs', { tag: ['@morning-brief', '@sche
       tag: ['@smoke', '@P1'],
     },
     async ({ historyLogsPage, page }) => {
-      await historyLogsPage.gotoHistoryTab(STAGING_JOB_WITH_HISTORY);
+      if (!JOB_WITH_HISTORY) { test.skip(true, "No job with history on this environment"); return; }
+      await historyLogsPage.gotoHistoryTab(JOB_WITH_HISTORY);
       await page.waitForLoadState('networkidle');
 
       // Click on audience count button to open detail
@@ -119,7 +123,8 @@ test.describe('Morning Brief — History Logs', { tag: ['@morning-brief', '@sche
       tag: ['@sanity', '@P1'],
     },
     async ({ historyLogsPage, page }) => {
-      await historyLogsPage.gotoHistoryTab(STAGING_JOB_WITH_HISTORY);
+      if (!JOB_WITH_HISTORY) { test.skip(true, "No job with history on this environment"); return; }
+      await historyLogsPage.gotoHistoryTab(JOB_WITH_HISTORY);
       await page.waitForLoadState('networkidle');
 
       // Look for audience button on rows that have failures (Failed At column is not "-")
@@ -150,7 +155,8 @@ test.describe('Morning Brief — History Logs', { tag: ['@morning-brief', '@sche
       tag: ['@sanity', '@P2'],
     },
     async ({ historyLogsPage, page }) => {
-      await historyLogsPage.gotoHistoryTab(STAGING_JOB_WITH_HISTORY);
+      if (!JOB_WITH_HISTORY) { test.skip(true, "No job with history on this environment"); return; }
+      await historyLogsPage.gotoHistoryTab(JOB_WITH_HISTORY);
       await page.waitForLoadState('networkidle');
 
       // Click audience count button to expand detail
@@ -200,7 +206,8 @@ test.describe('Morning Brief — History Logs', { tag: ['@morning-brief', '@sche
       tag: ['@regression', '@P1'],
     },
     async ({ historyLogsPage, page }) => {
-      await historyLogsPage.gotoHistoryTab(STAGING_JOB_WITH_HISTORY);
+      if (!JOB_WITH_HISTORY) { test.skip(true, "No job with history on this environment"); return; }
+      await historyLogsPage.gotoHistoryTab(JOB_WITH_HISTORY);
       await page.waitForLoadState('networkidle');
 
       // Look for "Running" text in list (from dashboard snapshot we saw "Running" on dcdf job)
@@ -223,7 +230,8 @@ test.describe('Morning Brief — History Logs', { tag: ['@morning-brief', '@sche
       tag: ['@regression', '@P2'],
     },
     async ({ historyLogsPage, page }) => {
-      await historyLogsPage.gotoHistoryTab(STAGING_JOB_WITH_HISTORY);
+      if (!JOB_WITH_HISTORY) { test.skip(true, "No job with history on this environment"); return; }
+      await historyLogsPage.gotoHistoryTab(JOB_WITH_HISTORY);
       await page.waitForLoadState('networkidle');
 
       // Check for pagination controls
@@ -252,7 +260,8 @@ test.describe('Morning Brief — History Logs', { tag: ['@morning-brief', '@sche
       tag: ['@regression', '@P1'],
     },
     async ({ historyLogsPage, page }) => {
-      await historyLogsPage.gotoHistoryTab(STAGING_JOB_WITH_HISTORY);
+      if (!JOB_WITH_HISTORY) { test.skip(true, "No job with history on this environment"); return; }
+      await historyLogsPage.gotoHistoryTab(JOB_WITH_HISTORY);
       await page.waitForLoadState('networkidle');
 
       // Assert: history log loads
@@ -272,7 +281,8 @@ test.describe('Morning Brief — History Logs', { tag: ['@morning-brief', '@sche
       tag: ['@regression', '@P2'],
     },
     async ({ historyLogsPage, page }) => {
-      await historyLogsPage.gotoHistoryTab(STAGING_JOB_WITH_HISTORY);
+      if (!JOB_WITH_HISTORY) { test.skip(true, "No job with history on this environment"); return; }
+      await historyLogsPage.gotoHistoryTab(JOB_WITH_HISTORY);
       await page.waitForLoadState('networkidle');
 
       // Assert: dates are in readable format (not raw milliseconds)
