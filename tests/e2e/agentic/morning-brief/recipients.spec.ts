@@ -9,6 +9,7 @@
  * Note: C1552343 is API-type despite being in the UI section — handled via page inspect.
  */
 import { test, expect } from '../../../fixtures';
+import { shouldSkipDestructive } from '../../../../src/helpers/env-guard.helper';
 import { createJob, deleteJob } from '../../../../src/helpers/job-factory';
 
 let jobId: string;
@@ -22,6 +23,8 @@ test.afterAll(async () => {
 });
 
 test.describe('Morning Brief — Recipients (Audience)', { tag: ['@morning-brief', '@scheduled-jobs'] }, () => {
+
+  // Skip ALL destructive tests on production (READONLY_MODE=true)
 
   // C1552337 — Check audience table should display selected users when users are added
   test('should display audience tab with individual users section',

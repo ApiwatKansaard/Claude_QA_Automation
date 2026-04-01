@@ -8,11 +8,14 @@
  * Cleanup rule: Every job created during a test MUST be deleted in afterEach/afterAll or via cleanup fixture.
  */
 import { test, expect } from '../../../fixtures';
+import { shouldSkipDestructive } from '../../../../src/helpers/env-guard.helper';
 import { deleteJob } from '../../../../src/helpers/job-factory';
 
 const UNIQUE_JOB_NAME = () => `QA-MB-Create-${Date.now()}`;
 
 test.describe('Morning Brief — Create Scheduled Job', { tag: ['@morning-brief', '@scheduled-jobs'] }, () => {
+
+  // Skip ALL destructive tests on production (READONLY_MODE=true)
   test.beforeEach(async ({ schedulerPage }) => {
     await schedulerPage.goto();
   });
@@ -98,6 +101,8 @@ test.describe('Morning Brief — Create Scheduled Job', { tag: ['@morning-brief'
 
         // Best-effort: wait for redirect to capture job ID for cleanup
         await page.waitForURL(url => !url.includes('/create'), { timeout: 10_000 }).catch(() => {});
+
+  // Skip ALL destructive tests on production (READONLY_MODE=true)
         const url = page.url();
 
         // Track for cleanup — extract job ID from URL if redirected to management page

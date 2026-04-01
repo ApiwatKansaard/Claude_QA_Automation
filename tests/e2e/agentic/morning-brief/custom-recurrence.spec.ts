@@ -33,6 +33,7 @@
  *   - Date picker end date: input[placeholder="Select date"]
  */
 import { test, expect } from '../../../fixtures';
+import { shouldSkipDestructive } from '../../../../src/helpers/env-guard.helper';
 import { createJob, deleteJob } from '../../../../src/helpers/job-factory';
 
 // ─── Dynamic day helpers (tests must not hardcode day-of-week) ──────────────
@@ -193,6 +194,8 @@ async function selectEndsOption(page: import('@playwright/test').Page, label: 'N
 test.describe('Morning Brief — Custom Recurrence Modal', {
   tag: ['@morning-brief', '@scheduled-jobs', '@custom-recurrence'],
 }, () => {
+
+  // Skip ALL destructive tests on production (READONLY_MODE=true)
 
   test.beforeEach(async ({ schedulerPage }) => {
     await schedulerPage.goto();

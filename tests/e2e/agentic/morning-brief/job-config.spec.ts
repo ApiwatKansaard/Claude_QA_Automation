@@ -8,6 +8,7 @@
  * Cleanup rule: Job created in beforeAll is ALWAYS deleted in afterAll.
  */
 import { test, expect } from '../../../fixtures';
+import { shouldSkipDestructive } from '../../../../src/helpers/env-guard.helper';
 import { createJob, deleteJob } from '../../../../src/helpers/job-factory';
 
 let jobId: string;
@@ -21,6 +22,8 @@ test.afterAll(async () => {
 });
 
 test.describe('Morning Brief — Job Configuration', { tag: ['@morning-brief', '@scheduled-jobs'] }, () => {
+
+  // Skip ALL destructive tests on production (READONLY_MODE=true)
 
   // C1552326 — Check job configuration page should display all fields when opening an existing job
   test('should display all fields when opening an existing job configuration',

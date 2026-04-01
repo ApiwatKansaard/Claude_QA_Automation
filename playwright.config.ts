@@ -32,10 +32,10 @@ export default defineConfig({
   },
 
   projects: [
-    // --- Setup (auth per environment) ---
+    // --- Setup (auth per environment — ONLY auth.setup.ts, not eko-dev) ---
     {
       name: 'setup',
-      testMatch: /.*\.setup\.ts/,
+      testMatch: /auth\.setup\.ts$/,
     },
 
     // --- E2E Tests (UI) ---
