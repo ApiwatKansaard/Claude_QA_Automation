@@ -2,7 +2,8 @@
 
 > **Repository:** `ApiwatKansaard/Claude_QA_Automation`
 > **Sibling repo:** `ApiwatKansaard/Claude_QA_Agent` (agents, skills, sprint data)
-> **Last updated:** 2026-03-30 · **143 automated test cases** · Morning Brief 18.0
+> **Last updated:** 2026-04-02 · **196 automated test cases** · AI Task Scheduler + Scheduled Jobs
+> **Platform:** Claude Code (CLI + VSCode Extension)
 
 Automated E2E and API tests for the EkoAI platform using Playwright + TypeScript.
 
@@ -22,32 +23,53 @@ cp .env.example .env
 # 4. Run all tests
 npm test
 
-# 5. Run Morning Brief tests only
-npx playwright test tests/e2e/agentic/morning-brief/
-npx playwright test tests/api/agentic/morning-brief/
+# 5. Run AI Task Scheduler tests
+npm run test:ai-scheduler          # All scheduler tests (UI + API + webhook)
+npm run test:webhook               # Webhook E2E tests only
+npm run test:webhook:smoke         # Webhook smoke only
+npm run test:webhook:scenarios     # Failure scenario tests
+npm run test:history-log           # History log with mock server
 
-# 6. Generate reports (ALWAYS run both after test)
-python3 scripts/generate_report.py       # Team numbers report
-python3 scripts/generate_risk_report.py  # Risk story report for meetings
+# 6. Run mock process server (for manual webhook testing)
+npm run mock-server
+
+# 7. Generate reports (ALWAYS run after test)
+python3 scripts/generate_report.py
 ```
 
-## Test Coverage — Morning Brief 18.0
+## Test Coverage
+
+### AI Task Scheduler / Scheduled Jobs
 
 | Spec File | Tests | Section | Type |
 |---|---|---|---|
-| `dashboard.spec.ts` | 9 | Dashboard (UI) | E2E |
-| `create-job.spec.ts` | 13 | Create Scheduled Job (UI) | E2E |
-| `custom-recurrence.spec.ts` | 24 | Custom Recurrence Modal | E2E |
-| `job-config.spec.ts` | 11 | Job Configuration (UI) | E2E |
-| `recipients.spec.ts` | 11 | Recipients / Audience (UI) | E2E |
-| `history-logs.spec.ts` | 10 | History Logs (UI) | E2E |
-| `widget-rendering.spec.ts` | 12 | Widget Rendering (UI/API) | E2E+API |
-| `trigger-step.api.spec.ts` | 10 | Trigger Step | API |
-| `process-step.api.spec.ts` | 12 | Process Step | API |
-| `action-step.api.spec.ts` | 11 | Action Step | API |
+| `scheduler-list.spec.ts` | 9 | Dashboard / List (UI) | E2E |
+| `create-job.spec.ts` | 12 | Create Scheduled Job (UI) | E2E |
+| `job-config.spec.ts` | 12 | Job Configuration (UI) | E2E |
+| `recipients.spec.ts` | 13 | Recipients / Audience (UI) | E2E |
+| `history-logs.spec.ts` | 12 | History Logs (UI) | E2E |
+| `webhook-e2e.spec.ts` | 8 | Webhook E2E + Mock Server | E2E |
+| `webhook-scenarios.spec.ts` | 20 | Failure / Timeout / Retry | E2E |
+| `history-logs-with-mock.spec.ts` | 14 | History Logs with Real Data | E2E |
+| `trigger-step.api.spec.ts` | 9 | Trigger Step | API |
+| `process-step.api.spec.ts` | 14 | Process Step | API |
+| `action-step.api.spec.ts` | 10 | Action Step | API |
 | `callback.api.spec.ts` | 10 | Callback | API |
-| `security.api.spec.ts` | 10 | Security | API |
-| **Total** | **143** | | |
+| `security.api.spec.ts` | 9 | Security | API |
+| `cutoff-timeout.api.spec.ts` | 7 | Cutoff Timeout | API |
+| `status-check.api.spec.ts` | 7 | Status Check | API |
+| `home-page-delivery.api.spec.ts` | 13 | Home Page Delivery | API |
+| `widget-rendering.api.spec.ts` | 9 | Widget Rendering | API |
+| `scheduled-jobs-crud.api.spec.ts` | 2 | CRUD | API |
+| `scheduled-jobs.api.spec.ts` | 7 | General API | API |
+| **Total** | **196** | | |
+
+### Latest Results (2026-04-02)
+
+| Environment | Passed | Failed | Skipped | Pass Rate |
+|---|---|---|---|---|
+| Staging (Full) | 146 | 0 | 50 | 100% |
+| Prod (Smoke) | 50 | 0 | 17 | 100% |
 
 ## Reports
 
@@ -94,10 +116,14 @@ QA_Automation/
 ├── src/
 │   ├── config/
 │   │   └── env.config.ts         # Centralized env loader & validation
+│   ├── mock-server/              # ★ Mock Process Server for webhook testing
+│   │   ├── process-server.ts     # Express server (status-check, webhook, callback)
+│   │   ├── server-manager.ts     # Lifecycle: start/stop server + ngrok tunnel
+│   │   └── index.ts              # Barrel exports
 │   ├── pages/                    # Page Object Model (POM)
 │   │   ├── base.page.ts
 │   │   ├── login.page.ts
-│   │   └── agentic/              # Morning Brief page objects
+│   │   └── agentic/
 │   │       ├── scheduler.page.ts
 │   │       └── scheduled-jobs/
 │   │           ├── create-wizard.page.ts
@@ -108,7 +134,7 @@ QA_Automation/
 │   │   └── test-fixtures.ts      # Extended test with POM injection
 │   ├── helpers/
 │   │   ├── api.helper.ts         # API request wrapper
-│   │   ├── auth.helper.ts        # Per-env auth state
+│   │   ├── auth.helper.ts        # Per-env auth (Bearer + Basic for /_internal/)
 │   │   ├── data.helper.ts        # Test data & CSV parsing
 │   │   ├── env-guard.helper.ts   # Production safety guard
 │   │   ├── job-factory.ts        # Create/delete scheduled jobs via API
@@ -118,20 +144,28 @@ QA_Automation/
 ├── tests/
 │   ├── auth.setup.ts             # Authentication setup
 │   ├── fixtures.ts               # Re-export (stable import path)
-│   ├── e2e/agentic/morning-brief/  # ★ E2E UI tests (90 cases)
-│   │   ├── dashboard.spec.ts          # 9 tests
-│   │   ├── create-job.spec.ts         # 13 tests
-│   │   ├── custom-recurrence.spec.ts  # 24 tests (★ most comprehensive)
-│   │   ├── job-config.spec.ts         # 11 tests
-│   │   ├── recipients.spec.ts         # 11 tests
-│   │   ├── history-logs.spec.ts       # 10 tests
-│   │   └── widget-rendering.spec.ts   # 12 tests
-│   └── api/agentic/morning-brief/  # API tests
+│   ├── e2e/agentic/scheduled-jobs/    # ★ Scheduled Jobs UI tests
+│   │   ├── scheduler-list.spec.ts     # 9 tests
+│   │   ├── create-job.spec.ts         # 12 tests
+│   │   ├── job-config.spec.ts         # 12 tests
+│   │   ├── recipients.spec.ts         # 13 tests
+│   │   └── history-logs.spec.ts       # 12 tests
+│   ├── e2e/ekoai-console/ai-task-scheduler/  # ★ Webhook E2E tests
+│   │   ├── webhook-e2e.spec.ts              # 8 tests (mock server + ngrok)
+│   │   ├── webhook-scenarios.spec.ts        # 20 tests (failure/timeout/retry)
+│   │   └── history-logs-with-mock.spec.ts   # 14 tests (real run data)
+│   └── api/agentic/scheduled-jobs/    # ★ API tests (16 specs)
 │       ├── trigger-step.api.spec.ts
 │       ├── process-step.api.spec.ts
 │       ├── action-step.api.spec.ts
 │       ├── callback.api.spec.ts
-│       └── security.api.spec.ts
+│       ├── security.api.spec.ts
+│       ├── cutoff-timeout.api.spec.ts
+│       ├── status-check.api.spec.ts
+│       ├── home-page-delivery.api.spec.ts
+│       ├── widget-rendering.api.spec.ts
+│       ├── scheduled-jobs-crud.api.spec.ts
+│       └── scheduled-jobs.api.spec.ts
 ├── scripts/
 │   ├── generate_report.py        # Team HTML report generator
 │   ├── generate_risk_report.py   # Risk Story report (Amity branded)
@@ -153,9 +187,12 @@ QA_Automation/
 | `@sanity` | Quick verification | `npx playwright test --grep @sanity` |
 | `@regression` | Full regression | `npx playwright test --grep @regression` |
 | `@P1` / `@P2` | Priority | `npx playwright test --grep @P1` |
-| `@morning-brief` | Morning Brief feature | `npx playwright test --grep @morning-brief` |
-| `@custom-recurrence` | Custom recurrence modal | `npx playwright test --grep @custom-recurrence` |
+| `@scheduled-jobs` | Scheduled Jobs feature | `npx playwright test --grep @scheduled-jobs` |
+| `@ai-task-scheduler` | AI Task Scheduler (webhook) | `npx playwright test --grep @ai-task-scheduler` |
+| `@webhook` | Webhook tests | `npx playwright test --grep @webhook` |
+| `@history-log` | History log tests | `npx playwright test --grep @history-log` |
 | `@api` | API-only tests | `npx playwright test --grep @api` |
+| `@slow` | Long-running (wait for trigger) | Excluded by default |
 
 ## Key Patterns
 
