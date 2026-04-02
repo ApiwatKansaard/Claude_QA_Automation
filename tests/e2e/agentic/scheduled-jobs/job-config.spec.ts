@@ -33,7 +33,7 @@ test.describe('Scheduled Jobs — Job Configuration', { tag: ['@scheduled-jobs']
       await expect(jobConfigPage.tabJobConfig).toBeVisible();
       await expect(jobConfigPage.tabAudience).toBeVisible();
       await expect(jobConfigPage.tabHistoryLog).toBeVisible();
-      await expect(jobConfigPage.schedulerNameInput.or(page.locator('text=Scheduler Name'))).toBeVisible();
+      await expect(jobConfigPage.schedulerNameInput.or(page.locator('text=Scheduler Name')).first()).toBeVisible();
     }
   );
 

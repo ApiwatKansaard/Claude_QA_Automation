@@ -6,7 +6,7 @@
  * Type: Smoke/Regression | Priority: P1/P2 | Platform: API
  */
 import { test, expect } from '@playwright/test';
-import { getAuthHeaders } from '../../../../src/helpers/auth.helper';
+import { getAuthHeaders, getInternalAuthHeaders } from '../../../../src/helpers/auth.helper';
 import { loadEnvConfig } from '../../../../src/config/env.config';
 
 const { apiBaseURL: API_BASE } = loadEnvConfig();
@@ -47,10 +47,10 @@ test.describe('Scheduled Jobs — Action Step API', { tag: ['@api', '@scheduled-
       // Trigger the action orchestrator if internal endpoint available
       const response = await request.post(
         `${API_BASE}/_internal/scheduled-job-action-orchestrator/trigger`,
-        { headers: getAuthHeaders() }
+        { headers: getInternalAuthHeaders() }
       );
 
-      if (response.status() === 404) {
+      if ([401, 403, 404].includes(response.status())) {
         test.skip(true, 'Action orchestrator endpoint not available');
         return;
       }

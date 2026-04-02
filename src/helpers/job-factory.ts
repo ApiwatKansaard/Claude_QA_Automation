@@ -7,12 +7,18 @@ import { loadEnvConfig } from '../config/env.config';
  * Mirrors the payload used in scheduled-jobs-crud.api.spec.ts.
  */
 function buildJobPayload(suffix: string) {
+  // DTSTART must be in the future — use tomorrow 06:00 UTC
+  const tomorrow = new Date();
+  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const dtstart = `${tomorrow.getUTCFullYear()}${pad(tomorrow.getUTCMonth() + 1)}${pad(tomorrow.getUTCDate())}T060000Z`;
+
   return {
     name: `QA-Fixture-${suffix}-${Date.now()}`,
     description: 'Auto-created by QA test fixture — will be deleted after suite',
     step: {
       trigger: {
-        iCalendarDefinition: 'DTSTART:20260401T060000Z\nRRULE:BYHOUR=6;BYMINUTE=0;FREQ=DAILY',
+        iCalendarDefinition: `DTSTART:${dtstart}\nRRULE:FREQ=DAILY;BYHOUR=6;BYMINUTE=0`,
       },
       process: {
         endpoint: 'https://example.com/qa-noop',

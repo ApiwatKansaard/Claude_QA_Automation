@@ -33,7 +33,13 @@
     "lint": "eslint 'src/**/*.ts' 'tests/**/*.ts'",
     "lint:fix": "eslint --fix 'src/**/*.ts' 'tests/**/*.ts'",
     "format": "prettier --write 'src/**/*.ts' 'tests/**/*.ts'",
-    "check-conflicts": "ts-node scripts/check-conflicts.ts"
+    "check-conflicts": "ts-node scripts/check-conflicts.ts",
+    "mock-server": "ts-node src/mock-server/process-server.ts",
+    "test:webhook": "npx playwright test tests/e2e/ekoai-console/ai-task-scheduler/webhook-e2e.spec.ts",
+    "test:webhook:smoke": "npx playwright test tests/e2e/ekoai-console/ai-task-scheduler/webhook-e2e.spec.ts --grep @smoke",
+    "test:webhook:scenarios": "npx playwright test tests/e2e/ekoai-console/ai-task-scheduler/webhook-scenarios.spec.ts",
+    "test:history-log": "npx playwright test tests/e2e/ekoai-console/ai-task-scheduler/history-logs-with-mock.spec.ts",
+    "test:ai-scheduler": "npx playwright test tests/e2e/ekoai-console/ai-task-scheduler/"
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0",

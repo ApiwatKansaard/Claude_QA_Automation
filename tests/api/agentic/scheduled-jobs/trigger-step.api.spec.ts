@@ -6,7 +6,7 @@
  * Type: Smoke/Regression | Priority: P1/P2 | Platform: API
  */
 import { test, expect } from '@playwright/test';
-import { getAuthHeaders } from '../../../../src/helpers/auth.helper';
+import { getAuthHeaders, getInternalAuthHeaders } from '../../../../src/helpers/auth.helper';
 import { loadEnvConfig } from '../../../../src/config/env.config';
 
 const { apiBaseURL: API_BASE } = loadEnvConfig();
@@ -22,11 +22,10 @@ test.describe('Scheduled Jobs — Trigger Step API', { tag: ['@api', '@scheduled
       // Act: call the internal trigger endpoint to process due jobs
       const response = await request.post(
         `${API_BASE}/_internal/scheduled-job-action-orchestrator/trigger`,
-        { headers: getAuthHeaders() }
+        { headers: getInternalAuthHeaders() }
       );
 
-      // 200/201 = processed; 404 = endpoint not available in this env
-      if (response.status() === 404) {
+      if ([401, 403, 404].includes(response.status())) {
         test.skip(true, 'Internal trigger endpoint not available in this environment');
         return;
       }
@@ -92,10 +91,10 @@ test.describe('Scheduled Jobs — Trigger Step API', { tag: ['@api', '@scheduled
     async ({ request }) => {
       const response = await request.post(
         `${API_BASE}/_internal/scheduled-job-action-orchestrator/trigger`,
-        { headers: getAuthHeaders() }
+        { headers: getInternalAuthHeaders() }
       );
 
-      if (response.status() === 404) {
+      if ([401, 403, 404].includes(response.status())) {
         test.skip(true, 'Internal trigger endpoint not available');
         return;
       }

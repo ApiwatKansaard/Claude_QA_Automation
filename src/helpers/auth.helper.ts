@@ -41,3 +41,20 @@ export function getAuthHeaders(): Record<string, string> {
     'Content-Type': 'application/json',
   };
 }
+
+/**
+ * Returns Basic Auth headers for /_internal/ endpoints.
+ * Internal endpoints (trigger, action, cutoff orchestrators) use HTTP Basic Auth,
+ * NOT Bearer tokens. Credentials come from env config (ADMIN_EMAIL + ADMIN_PASSWORD)
+ * or INTERNAL_API_USER / INTERNAL_API_PASSWORD env vars.
+ */
+export function getInternalAuthHeaders(): Record<string, string> {
+  const config = loadEnvConfig();
+  const username = process.env.INTERNAL_API_USER || config.adminEmail;
+  const password = process.env.INTERNAL_API_PASSWORD || config.adminPassword;
+  const encoded = Buffer.from(`${username}:${password}`).toString('base64');
+  return {
+    Authorization: `Basic ${encoded}`,
+    'Content-Type': 'application/json',
+  };
+}

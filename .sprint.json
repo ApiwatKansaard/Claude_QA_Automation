@@ -1,37 +1,21 @@
 {
-  "sprint": "agentic-sharepoint-km",
-  "product": "agentic",
-  "feature": "sharepoint-km",
+  "sprint": "ekoai-console-ai-task-scheduler",
+  "product": "ekoai-console",
+  "feature": "ai-task-scheduler",
   "jiraProject": "AE",
-  "jiraEpic": "AE-14305",
+  "jiraEpic": null,
   "jiraBoardId": 530,
-  "testrailSuiteId": 3924,
+  "testrailSuiteId": null,
   "testrailMilestoneId": null,
-  "confluencePages": [
-    {
-      "id": "3529572362",
-      "title": "[TS] SharePoint as KM Source — RAG Integration",
-      "url": "https://ekoapp.atlassian.net/wiki/spaces/EP/pages/3529572362"
-    },
-    {
-      "id": "3536584723",
-      "title": "[TS] SharePoint KM Search — EkoAI Integration",
-      "url": "https://ekoapp.atlassian.net/wiki/spaces/EP/pages/3536584723"
-    },
-    {
-      "id": "3536584707",
-      "title": "[TS] User Auth Connections — Agent-Initiated Sign-In",
-      "url": "https://ekoapp.atlassian.net/wiki/spaces/EP/pages/3536584707"
-    }
-  ],
+  "confluencePages": [],
   "dirs": {
-    "e2e": "tests/e2e/agentic/sharepoint-km",
-    "api": "tests/api/agentic/sharepoint-km",
-    "pages": "src/pages/agentic/sharepoint-km",
-    "selectors": "selectors/agentic/sharepoint-km.json",
-    "archive": "archive/agentic/agentic-sharepoint-km"
+    "e2e": "tests/e2e/ekoai-console/ai-task-scheduler",
+    "api": "tests/api/ekoai-console/ai-task-scheduler",
+    "pages": "src/pages/ekoai-console/ai-task-scheduler",
+    "selectors": "selectors/ekoai-console/ai-task-scheduler.json",
+    "archive": "archive/ekoai-console/ekoai-console-ai-task-scheduler"
   },
-  "previousSprint": "archive/agentic/sharp-test-001",
-  "startDate": "2026-03-27",
+  "previousSprint": "archive/agentic/agentic-sharepoint-km",
+  "startDate": "2026-04-01",
   "endDate": null
 }

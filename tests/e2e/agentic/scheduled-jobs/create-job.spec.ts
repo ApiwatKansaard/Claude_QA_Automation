@@ -87,11 +87,11 @@ test.describe('Scheduled Jobs — Create Job', { tag: ['@scheduled-jobs'] }, () 
       // Arrange: open wizard
       await createWizardPage.goto();
       await expect(createWizardPage.schedulerNameInput).toBeVisible();
-      await createWizardPage.fillBasicInfo('QA-Repeat-Test');
+      await createWizardPage.fillStep1Required('QA-Repeat-Test', 'https://api.example.com/process', 'qa-test-api-key');
       await createWizardPage.clickNext();
 
       // Act: click repeat/frequency dropdown if visible
-      const repeatDropdown = page.getByText('Daily').first();
+      const repeatDropdown = page.getByText('Does not repeat').or(page.getByText('Daily')).first();
       if (await repeatDropdown.isVisible()) {
         await repeatDropdown.click();
 

@@ -145,8 +145,8 @@ test.describe('Scheduled Jobs — Recipients', { tag: ['@scheduled-jobs'] }, () 
       await page.waitForLoadState('networkidle');
 
       await expect(page.locator('text=something went wrong').or(
-        page.getByRole('button', { name: 'Audience' })
-      )).toBeVisible({ timeout: 10_000 });
+        page.getByRole('button', { name: 'Audience', exact: true })
+      ).first()).toBeVisible({ timeout: 10_000 });
     }
   );
 
