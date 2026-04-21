@@ -9,14 +9,18 @@ import { test, expect } from '@playwright/test';
 import { getAuthHeaders } from '../../../../src/helpers/auth.helper';
 import { loadEnvConfig } from '../../../../src/config/env.config';
 import { createJob, deleteJob } from '../../../../src/helpers/job-factory';
+import { getCallbackApiKey } from '../../../../src/helpers/callback-key.helper';
 
 const { apiBaseURL: API_BASE } = loadEnvConfig();
+const CALLBACK_PATH = '/v1/scheduled-jobs/runs/callback';
 
 test.describe('Morning Brief — Process Step', { tag: ['@morning-brief', '@api'] }, () => {
   let jobId: string;
+  let callbackApiKey: string;
 
   test.beforeAll(async () => {
     jobId = await createJob('MBProcess');
+    callbackApiKey = await getCallbackApiKey(jobId);
   });
 
   test.afterAll(async () => {
@@ -359,22 +363,16 @@ test.describe('Morning Brief — Process Step', { tag: ['@morning-brief', '@api'
     },
     async ({ request }) => {
       // Verify callback endpoint is reachable (the mechanism by which SUCCESS is set)
-      const response = await request.post(`${API_BASE}/v1/scheduled-jobs/callback`, {
-        headers: { ...getAuthHeaders(), 'x-scheduled-job-api-key': 'qa-test-key' },
+      const response = await request.post(`${API_BASE}${CALLBACK_PATH}`, {
+        headers: { 'x-api-key': callbackApiKey, 'Content-Type': 'application/json' },
         data: {
-          scheduleJobRunUserId: 'qa-probe-id',
-          status: 'success',
-          result: { homePage: { blocks: [] } },
+          id: 'qa-probe-id',
+          homePage: { html: '<p>QA probe</p>', lang: 'en' },
         },
       });
 
-      if (response.status() === 404) {
-        test.skip(true, 'Callback endpoint not available');
-        return;
-      }
-
-      // 400/422 = bad ID (expected for probe); confirms endpoint exists and validates input
-      expect([200, 400, 401, 422]).toContain(response.status());
+      // 200 = accepted; 404 = unknown probe ID (expected); 422 = validation
+      expect([200, 404, 422]).toContain(response.status());
     }
   );
 
@@ -487,23 +485,17 @@ test.describe('Morning Brief — Process Step', { tag: ['@morning-brief', '@api'
       tag: ['@regression', '@P2'],
     },
     async ({ request }) => {
-      // Simulate empty-body callback (no result field)
-      const response = await request.post(`${API_BASE}/v1/scheduled-jobs/callback`, {
-        headers: { ...getAuthHeaders(), 'x-scheduled-job-api-key': 'qa-test-key' },
+      // Simulate empty-body callback (id-only, no homePage — fail-style per contract)
+      const response = await request.post(`${API_BASE}${CALLBACK_PATH}`, {
+        headers: { 'x-api-key': callbackApiKey, 'Content-Type': 'application/json' },
         data: {
-          scheduleJobRunUserId: 'qa-empty-body-probe',
-          status: 'success',
-          // No result field — simulates external endpoint returning empty body
+          id: 'qa-empty-body-probe',
+          // No homePage — simulates external endpoint returning empty body
         },
       });
 
-      if (response.status() === 404) {
-        test.skip(true, 'Callback endpoint not available');
-        return;
-      }
-
-      // 400/422 = bad probe ID (expected); 200 = accepted empty result
-      expect([200, 400, 401, 422]).toContain(response.status());
+      // 200 = accepted; 404 = unknown probe ID (expected); 422 = validation
+      expect([200, 404, 422]).toContain(response.status());
     }
   );
 });

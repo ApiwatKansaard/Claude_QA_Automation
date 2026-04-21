@@ -9,16 +9,21 @@ import { test, expect } from '@playwright/test';
 import { getAuthHeaders } from '../../../../src/helpers/auth.helper';
 import { loadEnvConfig } from '../../../../src/config/env.config';
 import { createJob, deleteJob } from '../../../../src/helpers/job-factory';
+import { getCallbackApiKey } from '../../../../src/helpers/callback-key.helper';
 
 const { apiBaseURL: API_BASE } = loadEnvConfig();
+const CALLBACK_PATH = '/v1/scheduled-jobs/runs/callback';
 
 test.describe('Morning Brief — Action Step', { tag: ['@morning-brief', '@api'] }, () => {
   let immediateJobId: string;
   let scheduledJobId: string;
+  let callbackApiKey: string;
 
   test.beforeAll(async () => {
     immediateJobId = await createJob('MBActionImmediate');
     scheduledJobId = await createJob('MBActionScheduled');
+    // Use immediateJobId's key for all callback probes in this suite
+    callbackApiKey = await getCallbackApiKey(immediateJobId);
   });
 
   test.afterAll(async () => {
@@ -257,23 +262,14 @@ test.describe('Morning Brief — Action Step', { tag: ['@morning-brief', '@api']
       tag: ['@regression', '@P1'],
     },
     async ({ request }) => {
-      // Send a fail callback — this user should be skipped by the action step
-      const response = await request.post(`${API_BASE}/v1/scheduled-jobs/callback`, {
-        headers: { ...getAuthHeaders(), 'x-scheduled-job-api-key': 'qa-test-key' },
-        data: {
-          scheduleJobRunUserId: 'qa-failed-user-probe-395',
-          status: 'fail',
-          failReason: 'Process failed — QA skip test',
-        },
+      // Id-only callback (no homePage) models the "failed/skip" state per spec §5.2
+      const response = await request.post(`${API_BASE}${CALLBACK_PATH}`, {
+        headers: { 'x-api-key': callbackApiKey, 'Content-Type': 'application/json' },
+        data: { id: 'qa-failed-user-probe-395' },
       });
 
-      if (response.status() === 404) {
-        test.skip(true, 'Callback endpoint not available');
-        return;
-      }
-
-      // 400/422 = unknown probe ID; 200 = accepted fail status
-      expect([200, 400, 422]).toContain(response.status());
+      // 200 = accepted; 404 = unknown probe ID; 422 = validation
+      expect([200, 404, 422]).toContain(response.status());
     }
   );
 
@@ -436,61 +432,52 @@ test.describe('Morning Brief — Action Step', { tag: ['@morning-brief', '@api']
       tag: ['@regression', '@P2'],
     },
     async ({ request }) => {
-      // Send multiple fail callbacks for the same run (simulating all-fail scenario)
-      const failPayloads = ['qa-all-fail-user-1', 'qa-all-fail-user-2'].map((id) => ({
-        scheduleJobRunUserId: id,
-        status: 'fail',
-        failReason: 'QA all-fail scenario test',
-      }));
+      // Send id-only callbacks (no homePage) to model the all-fail scenario per spec §5.2
+      const failIds = ['qa-all-fail-user-1', 'qa-all-fail-user-2'];
 
-      for (const payload of failPayloads) {
-        const response = await request.post(`${API_BASE}/v1/scheduled-jobs/callback`, {
-          headers: { ...getAuthHeaders(), 'x-scheduled-job-api-key': 'qa-test-key' },
-          data: payload,
+      for (const id of failIds) {
+        const response = await request.post(`${API_BASE}${CALLBACK_PATH}`, {
+          headers: { 'x-api-key': callbackApiKey, 'Content-Type': 'application/json' },
+          data: { id },
         });
 
-        if (response.status() === 404) {
-          test.skip(true, 'Callback endpoint not available');
-          return;
-        }
-
-        expect([200, 400, 422]).toContain(response.status());
+        expect([200, 404, 422]).toContain(response.status());
       }
     }
   );
 
   // ─────────────────────────────────────────────
   // C1552400 — action step should handle when HomePage content exceeds max size
+  // Linked to AE-14621: body-parser must return 413 (not 500) when limit is exceeded.
   // ─────────────────────────────────────────────
   test(
     'action step should handle when HomePage content exceeds max size',
     {
-      annotation: { type: 'TestRail', description: 'C1552400' },
+      annotation: [
+        { type: 'TestRail', description: 'C1552400' },
+        { type: 'Jira', description: 'AE-14621' },
+      ],
       tag: ['@regression', '@P2'],
     },
     async ({ request }) => {
-      // ~5MB of block content to test max size enforcement
-      const oversizedBlocks = Array.from({ length: 5000 }, (_, i) => ({
-        type: 'text',
-        content: `Oversized block ${i}: ${'y'.repeat(900)}`,
-      }));
+      // ~5MB of html content to exceed the ~1MB body-parser limit
+      const oversizedHtml =
+        '<section>' +
+        Array.from({ length: 5000 }, (_, i) => `<p>Oversized block ${i}: ${'y'.repeat(900)}</p>`).join('') +
+        '</section>';
 
-      const response = await request.post(`${API_BASE}/v1/scheduled-jobs/callback`, {
-        headers: { ...getAuthHeaders(), 'x-scheduled-job-api-key': 'qa-test-key' },
+      const response = await request.post(`${API_BASE}${CALLBACK_PATH}`, {
+        headers: { 'x-api-key': callbackApiKey, 'Content-Type': 'application/json' },
         data: {
-          scheduleJobRunUserId: 'qa-oversize-probe-400',
-          status: 'success',
-          result: { homePage: { blocks: oversizedBlocks } },
+          id: 'qa-oversize-probe-400',
+          homePage: { html: oversizedHtml, lang: 'en' },
         },
       });
 
-      if (response.status() === 404) {
-        test.skip(true, 'Callback endpoint not available');
-        return;
-      }
-
-      // 413 = content too large (enforced); 400/422 = bad probe ID or validation
-      expect([200, 400, 413, 422]).toContain(response.status());
+      // 413 = payload too large (enforced); 200/404/422 = within limit or validation
+      // Critically: must NOT be 500 — that's the AE-14621 regression
+      expect(response.status()).not.toBe(500);
+      expect([200, 404, 413, 422]).toContain(response.status());
     }
   );
 });

@@ -4,41 +4,45 @@
  * Maps to TestRail: "Agentic > Morning Brief > Callback"
  * C1552380–C1552389
  * Type: Smoke/Sanity/Regression | Priority: P1/P2 | Platform: API
+ *
+ * Contract: https://ekoapp.atlassian.net/wiki/spaces/EP/pages/3528917005
+ *   POST {apiBaseURL}/v1/scheduled-jobs/runs/callback
+ *   Headers: x-api-key: {scheduled_job_callback_api_key}
+ *   Body: { id: <scheduleJobRunUserId>, homePage?: { html, lang } }
+ *   NOTE: The production API does NOT accept `status`/`result` wrapper fields.
+ *         `homePage` sits at the root; `html` replaces the deprecated `widgets`/`blocks`.
+ *
+ * Per-spec verification 2026-04-21:
+ *   • 200 `{success:true}` when id resolves to a PROCESSING ScheduleJobRunUser
+ *   • 404 when id does not exist
+ *   • 422 when body schema is wrong (e.g. extra `status`/`result` fields)
+ *   • 413 when body exceeds ~1 MB limit (was 500 before AE-14621 fix)
+ *   • 401 when x-api-key is missing or invalid
  */
 import { test, expect } from '@playwright/test';
-import { getAuthHeaders } from '../../../../src/helpers/auth.helper';
 import { loadEnvConfig } from '../../../../src/config/env.config';
 import { createJob, deleteJob } from '../../../../src/helpers/job-factory';
+import { getCallbackApiKey } from '../../../../src/helpers/callback-key.helper';
 
 const { apiBaseURL: API_BASE } = loadEnvConfig();
+const CALLBACK_PATH = '/v1/scheduled-jobs/runs/callback';
 
-/** Build a Morning Brief callback payload. */
+/**
+ * Build a Morning Brief callback payload per the production contract.
+ * Only `id` is required; `homePage.html` is optional.
+ */
 function buildCallbackPayload(
   scheduleJobRunUserId: string,
-  status: 'success' | 'fail',
   options: {
-    homePage?: { blocks: unknown[] };
-    failReason?: string;
+    homePage?: { html: string; lang?: string };
   } = {}
 ) {
   const payload: Record<string, unknown> = {
-    scheduleJobRunUserId,
-    status,
+    id: scheduleJobRunUserId,
   };
 
-  if (status === 'success') {
-    payload.result = {
-      homePage: options.homePage ?? {
-        blocks: [
-          { type: 'text', content: 'Morning Brief QA test block' },
-          { type: 'hero', title: 'Good Morning', subtitle: 'Your daily brief' },
-        ],
-      },
-    };
-  }
-
-  if (status === 'fail' && options.failReason) {
-    payload.failReason = options.failReason;
+  if (options.homePage) {
+    payload.homePage = options.homePage;
   }
 
   return payload;
@@ -46,9 +50,11 @@ function buildCallbackPayload(
 
 test.describe('Morning Brief — Callback', { tag: ['@morning-brief', '@api'] }, () => {
   let jobId: string;
+  let callbackApiKey: string;
 
   test.beforeAll(async () => {
     jobId = await createJob('MBCallback');
+    callbackApiKey = await getCallbackApiKey(jobId);
   });
 
   test.afterAll(async () => {
@@ -65,120 +71,104 @@ test.describe('Morning Brief — Callback', { tag: ['@morning-brief', '@api'] },
       tag: ['@smoke', '@P1'],
     },
     async ({ request }) => {
-      const payload = buildCallbackPayload('qa-success-probe-380', 'success');
+      const payload = buildCallbackPayload('qa-success-probe-380', {
+        homePage: { html: '<p>QA success probe</p>', lang: 'en' },
+      });
 
-      const response = await request.post(`${API_BASE}/v1/scheduled-jobs/callback`, {
-        headers: { ...getAuthHeaders(), 'x-scheduled-job-api-key': 'qa-test-key' },
+      const response = await request.post(`${API_BASE}${CALLBACK_PATH}`, {
+        headers: { 'x-api-key': callbackApiKey, 'Content-Type': 'application/json' },
         data: payload,
       });
 
-      if (response.status() === 404) {
-        test.skip(true, 'Callback endpoint not available in this environment');
-        return;
-      }
-
-      // 200 = processed; 400/422 = unknown probe ID (expected in test env)
-      expect([200, 400, 422]).toContain(response.status());
+      // 200 = id resolved and processed; 404 = unknown probe ID (expected in test env)
+      expect([200, 404, 422]).toContain(response.status());
     }
   );
 
   // ─────────────────────────────────────────────
-  // C1552381 — callback endpoint should accept fail payload and mark user as FAILED
+  // C1552381 — callback endpoint should accept id-only payload (no homePage = fail-style)
   // ─────────────────────────────────────────────
   test(
-    'callback endpoint should accept fail payload and mark user as FAILED',
+    'callback endpoint should accept id-only payload (no homePage)',
     {
       annotation: { type: 'TestRail', description: 'C1552381' },
       tag: ['@smoke', '@P1'],
     },
     async ({ request }) => {
-      const payload = buildCallbackPayload('qa-fail-probe-381', 'fail', {
-        failReason: 'Content generation failed — QA test',
-      });
+      // Per contract, homePage is optional; id-only callback marks the run user as finished
+      const payload = buildCallbackPayload('qa-noresult-probe-381');
 
-      const response = await request.post(`${API_BASE}/v1/scheduled-jobs/callback`, {
-        headers: { ...getAuthHeaders(), 'x-scheduled-job-api-key': 'qa-test-key' },
+      const response = await request.post(`${API_BASE}${CALLBACK_PATH}`, {
+        headers: { 'x-api-key': callbackApiKey, 'Content-Type': 'application/json' },
         data: payload,
       });
 
-      if (response.status() === 404) {
-        test.skip(true, 'Callback endpoint not available');
-        return;
-      }
-
-      expect([200, 400, 422]).toContain(response.status());
+      expect([200, 404, 422]).toContain(response.status());
     }
   );
 
   // ─────────────────────────────────────────────
-  // C1552382 — callback response should include homePage content for successful runs
+  // C1552382 — callback should accept homePage with html content
   // ─────────────────────────────────────────────
   test(
-    'callback response should include homePage content for successful runs',
+    'callback should accept homePage with html content',
     {
       annotation: [
         { type: 'TestRail', description: 'C1552382' },
         {
           type: 'note',
           description:
-            'The homePage blocks in the callback result are stored and later delivered ' +
-            'by the action step. Observable by verifying the callback accepts a homePage payload.',
+            'homePage.html is persisted and later rendered via getLatest RPC with {{token}} substitution. ' +
+            'Observable by verifying the callback accepts the schema.',
         },
       ],
       tag: ['@smoke', '@P1'],
     },
     async ({ request }) => {
-      const payload = buildCallbackPayload('qa-homepage-probe-382', 'success', {
+      const payload = buildCallbackPayload('qa-homepage-probe-382', {
         homePage: {
-          blocks: [
-            { type: 'text', content: 'QA Morning Brief content' },
-            { type: 'image', url: 'https://example.com/morning.jpg', alt: 'Morning' },
-          ],
+          html: '<h1>Good Morning {{displayName}}</h1><p>{{homePageUpdatedAtFormatted}}</p>',
+          lang: 'en',
         },
       });
 
-      const response = await request.post(`${API_BASE}/v1/scheduled-jobs/callback`, {
-        headers: { ...getAuthHeaders(), 'x-scheduled-job-api-key': 'qa-test-key' },
+      const response = await request.post(`${API_BASE}${CALLBACK_PATH}`, {
+        headers: { 'x-api-key': callbackApiKey, 'Content-Type': 'application/json' },
         data: payload,
       });
 
-      if (response.status() === 404) {
-        test.skip(true, 'Callback endpoint not available');
-        return;
-      }
-
-      // Endpoint accepts the payload structure
-      expect([200, 400, 422]).toContain(response.status());
+      expect([200, 404, 422]).toContain(response.status());
     }
   );
 
   // ─────────────────────────────────────────────
-  // C1552383 — callback should reject request when scheduled_job_api_key is invalid
+  // C1552383 — callback should reject request when x-api-key is invalid
   // ─────────────────────────────────────────────
   test(
-    'callback should reject request when scheduled_job_api_key is invalid',
+    'callback should reject request when x-api-key is invalid',
     {
       annotation: { type: 'TestRail', description: 'C1552383' },
       tag: ['@sanity', '@P1'],
     },
     async ({ request }) => {
-      const payload = buildCallbackPayload('qa-invalid-key-probe-383', 'success');
+      const payload = buildCallbackPayload('qa-invalid-key-probe-383', {
+        homePage: { html: '<p>x</p>', lang: 'en' },
+      });
 
-      const response = await request.post(`${API_BASE}/v1/scheduled-jobs/callback`, {
+      const response = await request.post(`${API_BASE}${CALLBACK_PATH}`, {
         headers: {
-          'x-scheduled-job-api-key': 'definitely-invalid-key-00000',
+          'x-api-key': 'scbk_definitely-invalid-key-00000',
           'Content-Type': 'application/json',
         },
         data: payload,
       });
 
-      if (response.status() === 404) {
-        test.skip(true, 'Callback endpoint not available');
-        return;
-      }
-
-      // Must be rejected — invalid key should never be accepted
-      expect([401, 403]).toContain(response.status());
+      // Must be rejected — invalid key should never be accepted.
+      // Backend returns 404 when the key is not found in DB, 401 when header is missing,
+      // and 403 if authorized but forbidden. Any of these is a valid rejection.
+      expect([401, 403, 404]).toContain(response.status());
+      // Critically, the request must not be processed successfully
+      expect(response.status()).not.toBe(200);
     }
   );
 
@@ -201,128 +191,108 @@ test.describe('Morning Brief — Callback', { tag: ['@morning-brief', '@api'] },
       tag: ['@sanity', '@P2'],
     },
     async ({ request }) => {
-      const payload = buildCallbackPayload('qa-record-update-probe-384', 'success', {
-        homePage: { blocks: [{ type: 'text', content: 'Record update QA test' }] },
+      const payload = buildCallbackPayload('qa-record-update-probe-384', {
+        homePage: { html: '<p>Record update QA test</p>', lang: 'en' },
       });
 
-      const response = await request.post(`${API_BASE}/v1/scheduled-jobs/callback`, {
-        headers: { ...getAuthHeaders(), 'x-scheduled-job-api-key': 'qa-test-key' },
+      const response = await request.post(`${API_BASE}${CALLBACK_PATH}`, {
+        headers: { 'x-api-key': callbackApiKey, 'Content-Type': 'application/json' },
         data: payload,
       });
 
-      if (response.status() === 404) {
-        test.skip(true, 'Callback endpoint not available');
-        return;
-      }
-
-      // 200 = record updated; 400/422 = unknown ID (expected for probe)
-      expect([200, 400, 422]).toContain(response.status());
+      // 200 = record updated; 404 = unknown ID (expected for probe); 422 = validation
+      expect([200, 404, 422]).toContain(response.status());
     }
   );
 
   // ─────────────────────────────────────────────
   // C1552385 — callback should handle correctly when homePage content is very large
+  // Linked to AE-14621: body-parser must return 413 (not 500) when limit is exceeded.
   // ─────────────────────────────────────────────
   test(
     'callback should handle correctly when homePage content is very large',
     {
-      annotation: { type: 'TestRail', description: 'C1552385' },
+      annotation: [
+        { type: 'TestRail', description: 'C1552385' },
+        { type: 'Jira', description: 'AE-14621' },
+      ],
       tag: ['@regression', '@P1'],
     },
     async ({ request }) => {
-      // Generate ~500KB of blocks to simulate large homePage
-      const largeBlocks = Array.from({ length: 500 }, (_, i) => ({
-        type: 'text',
-        content: `Block ${i}: ${'x'.repeat(900)}`, // ~900 chars per block
-      }));
+      // ~500KB of html to simulate a large morning brief — well within the ~1MB limit
+      const largeHtml =
+        '<section>' +
+        Array.from({ length: 500 }, (_, i) => `<p>Block ${i}: ${'x'.repeat(900)}</p>`).join('') +
+        '</section>';
 
-      const payload = buildCallbackPayload('qa-large-content-probe-385', 'success', {
-        homePage: { blocks: largeBlocks },
+      const payload = buildCallbackPayload('qa-large-content-probe-385', {
+        homePage: { html: largeHtml, lang: 'en' },
       });
 
-      const response = await request.post(`${API_BASE}/v1/scheduled-jobs/callback`, {
-        headers: { ...getAuthHeaders(), 'x-scheduled-job-api-key': 'qa-test-key' },
+      const response = await request.post(`${API_BASE}${CALLBACK_PATH}`, {
+        headers: { 'x-api-key': callbackApiKey, 'Content-Type': 'application/json' },
         data: payload,
       });
 
-      if (response.status() === 404) {
-        test.skip(true, 'Callback endpoint not available');
-        return;
-      }
-
-      // 200 = accepted large content; 400 = bad ID; 413 = content too large (enforced max)
-      expect([200, 400, 413, 422]).toContain(response.status());
+      // 200 = accepted (under limit); 404 = unknown probe ID; 413 = exceeded limit
+      // Critically: must NOT be 500 — that's the AE-14621 regression
+      expect(response.status()).not.toBe(500);
+      expect([200, 404, 413, 422]).toContain(response.status());
     }
   );
 
   // ─────────────────────────────────────────────
-  // C1552386 — callback should reject duplicate callback for same scheduleJobRunUserId
+  // C1552386 — callback should be idempotent for same id
   // ─────────────────────────────────────────────
   test(
-    'callback should reject duplicate callback for same scheduleJobRunUserId',
+    'callback should be idempotent for same id',
     {
       annotation: { type: 'TestRail', description: 'C1552386' },
       tag: ['@regression', '@P1'],
     },
     async ({ request }) => {
-      const payload = buildCallbackPayload('qa-duplicate-probe-386', 'success');
+      const payload = buildCallbackPayload('qa-duplicate-probe-386', {
+        homePage: { html: '<p>duplicate</p>', lang: 'en' },
+      });
 
-      const headers = { ...getAuthHeaders(), 'x-scheduled-job-api-key': 'qa-test-key' };
+      const headers = { 'x-api-key': callbackApiKey, 'Content-Type': 'application/json' };
 
       // First call
-      const res1 = await request.post(`${API_BASE}/v1/scheduled-jobs/callback`, {
-        headers,
-        data: payload,
-      });
+      const res1 = await request.post(`${API_BASE}${CALLBACK_PATH}`, { headers, data: payload });
 
-      if (res1.status() === 404) {
-        test.skip(true, 'Callback endpoint not available');
-        return;
-      }
-
-      // Second call with same ID — should be idempotent or rejected
-      const res2 = await request.post(`${API_BASE}/v1/scheduled-jobs/callback`, {
-        headers,
-        data: payload,
-      });
+      // Second call with same ID — should be idempotent (200) per spec §5.3
+      const res2 = await request.post(`${API_BASE}${CALLBACK_PATH}`, { headers, data: payload });
 
       // Both return known status codes
-      expect([200, 400, 409, 422]).toContain(res1.status());
-      expect([200, 400, 409, 422]).toContain(res2.status());
-
-      // If first was 200, second should not also be 200 (duplicate rejected)
-      // or both 400 because probe ID is unknown — both outcomes are valid
-      if (res1.status() === 200) {
-        expect([200, 409, 422]).toContain(res2.status());
-      }
+      expect([200, 404, 409, 422]).toContain(res1.status());
+      expect([200, 404, 409, 422]).toContain(res2.status());
     }
   );
 
   // ─────────────────────────────────────────────
-  // C1552387 — callback should handle correctly when userId in callback does not exist
+  // C1552387 — callback should return 404 when id does not exist
   // ─────────────────────────────────────────────
   test(
-    'callback should handle correctly when userId in callback does not exist',
+    'callback should return 404 when id does not exist',
     {
       annotation: { type: 'TestRail', description: 'C1552387' },
       tag: ['@regression', '@P1'],
     },
     async ({ request }) => {
-      // Use a clearly non-existent run user ID
-      const payload = buildCallbackPayload('non-existent-run-user-id-00000', 'success');
+      // A clearly non-existent run user ID (valid ObjectId shape but not in DB)
+      const payload = buildCallbackPayload('000000000000000000000000', {
+        homePage: { html: '<p>x</p>', lang: 'en' },
+      });
 
-      const response = await request.post(`${API_BASE}/v1/scheduled-jobs/callback`, {
-        headers: { ...getAuthHeaders(), 'x-scheduled-job-api-key': 'qa-test-key' },
+      const response = await request.post(`${API_BASE}${CALLBACK_PATH}`, {
+        headers: { 'x-api-key': callbackApiKey, 'Content-Type': 'application/json' },
         data: payload,
       });
 
-      if (response.status() === 404) {
-        test.skip(true, 'Callback endpoint not available');
-        return;
-      }
-
-      // Should return 400 or 422 for an unknown run user ID — not 500
+      // Spec §5.3: "Invalid Parameters. Can not match ID" → 404
       expect([400, 404, 422]).toContain(response.status());
+      // Must never be 500
+      expect(response.status()).not.toBe(500);
     }
   );
 
@@ -337,64 +307,55 @@ test.describe('Morning Brief — Callback', { tag: ['@morning-brief', '@api'] },
         {
           type: 'note',
           description:
-            'The callback endpoint must ack immediately and process asynchronously. ' +
-            'Observable by verifying the response time is fast (< 2000ms) on a valid-structured payload.',
+            'The callback endpoint must ack immediately. ' +
+            'Observable by verifying the response time is fast (< 2000ms).',
         },
       ],
       tag: ['@regression', '@P2'],
     },
     async ({ request }) => {
-      const payload = buildCallbackPayload('qa-async-probe-388', 'success');
+      const payload = buildCallbackPayload('qa-async-probe-388', {
+        homePage: { html: '<p>async</p>', lang: 'en' },
+      });
 
       const start = Date.now();
-      const response = await request.post(`${API_BASE}/v1/scheduled-jobs/callback`, {
-        headers: { ...getAuthHeaders(), 'x-scheduled-job-api-key': 'qa-test-key' },
+      const response = await request.post(`${API_BASE}${CALLBACK_PATH}`, {
+        headers: { 'x-api-key': callbackApiKey, 'Content-Type': 'application/json' },
         data: payload,
       });
       const elapsed = Date.now() - start;
 
-      if (response.status() === 404) {
-        test.skip(true, 'Callback endpoint not available');
-        return;
-      }
-
-      expect([200, 400, 422]).toContain(response.status());
-
+      expect([200, 404, 422]).toContain(response.status());
       // Async ack should be fast — under 2 seconds for a network call
       expect(elapsed).toBeLessThan(2000);
     }
   );
 
   // ─────────────────────────────────────────────
-  // C1552389 — callback should validate homePage structure and reject malformed content
+  // C1552389 — callback should reject body with disallowed fields (e.g. `status`, `result`)
   // ─────────────────────────────────────────────
   test(
-    'callback should validate homePage structure and reject malformed content',
+    'callback should reject body with disallowed fields',
     {
       annotation: { type: 'TestRail', description: 'C1552389' },
       tag: ['@regression', '@P2'],
     },
     async ({ request }) => {
-      // Send malformed homePage — blocks should be an array, not a string
-      const malformedPayload = {
-        scheduleJobRunUserId: 'qa-malformed-probe-389',
+      // Send legacy schema with `status` + `result` — server should reject per implemented validator
+      const legacyPayload = {
+        id: 'qa-legacy-schema-probe-389',
         status: 'success',
         result: {
-          homePage: 'this-is-not-an-object', // Invalid type
+          homePage: { html: '<p>x</p>', lang: 'en' },
         },
       };
 
-      const response = await request.post(`${API_BASE}/v1/scheduled-jobs/callback`, {
-        headers: { ...getAuthHeaders(), 'x-scheduled-job-api-key': 'qa-test-key' },
-        data: malformedPayload,
+      const response = await request.post(`${API_BASE}${CALLBACK_PATH}`, {
+        headers: { 'x-api-key': callbackApiKey, 'Content-Type': 'application/json' },
+        data: legacyPayload,
       });
 
-      if (response.status() === 404) {
-        test.skip(true, 'Callback endpoint not available');
-        return;
-      }
-
-      // Malformed homePage structure should be rejected
+      // Server returns 422 `"status" is not allowed` when extra root-level fields are sent
       expect([400, 422]).toContain(response.status());
     }
   );

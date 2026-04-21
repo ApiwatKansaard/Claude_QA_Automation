@@ -2,10 +2,21 @@
 
 > **Repository:** `ApiwatKansaard/Claude_QA_Automation`
 > **Sibling repo:** `ApiwatKansaard/Claude_QA_Agent` (agents, skills, sprint data)
-> **Last updated:** 2026-04-02 · **196 automated test cases** · AI Task Scheduler + Scheduled Jobs
+> **Last updated:** 2026-04-21 · **196 automated test cases** · AI Task Scheduler + Scheduled Jobs
 > **Platform:** Claude Code (CLI + VSCode Extension)
 
 Automated E2E and API tests for the EkoAI platform using Playwright + TypeScript.
+
+## Recent changes
+
+**2026-04-21 — Callback API contract migration (AE-14621 retest)**
+- Migrated all callback tests + mock server to the production contract per [Doc] Project Team Guide | Scheduled Job (Confluence 3528917005) and Tech Spec AE-14600.
+- **Path:** `/v1/scheduled-jobs/runs/callback` (was `/v1/scheduled-jobs/callback`)
+- **Header:** `x-api-key: scbk_<key>` (was `x-scheduled-job-api-key: qa-test-key`)
+- **Body:** `{id, homePage?:{html, lang}}` (flat — removed legacy `status`/`result`/`quotaConsumed`/`blocks`/`widgets` wrappers)
+- New helper: `src/helpers/callback-key.helper.ts` — `getCallbackApiKey(jobId)` hits `POST /v1/scheduled-jobs/{jobId}/callback-api-key`
+- Files updated: `callback.api.spec.ts` (morning-brief + scheduled-jobs), `action-step.api.spec.ts`, `security.api.spec.ts` (both suites), `process-step.api.spec.ts`, `src/mock-server/process-server.ts`
+- AE-14621 fix verified: >1MB payload → 413 `PayloadTooLargeException` (was 500). 59 passed, 4 skipped, 0 failed.
 
 ## Quick Start
 

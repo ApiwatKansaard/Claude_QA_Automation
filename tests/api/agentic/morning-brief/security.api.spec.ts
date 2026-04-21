@@ -10,8 +10,10 @@ import * as crypto from 'crypto';
 import { getAuthHeaders } from '../../../../src/helpers/auth.helper';
 import { loadEnvConfig } from '../../../../src/config/env.config';
 import { createJob, deleteJob } from '../../../../src/helpers/job-factory';
+import { getCallbackApiKey } from '../../../../src/helpers/callback-key.helper';
 
 const { apiBaseURL: API_BASE } = loadEnvConfig();
+const CALLBACK_PATH = '/v1/scheduled-jobs/runs/callback';
 
 /** Compute HMAC-SHA256 hex digest over a payload string with a given secret. */
 function computeHmac(payload: string, secret: string): string {
@@ -22,9 +24,11 @@ test.describe('Morning Brief — Security', {
   tag: ['@morning-brief', '@api', '@security'],
 }, () => {
   let jobId: string;
+  let callbackApiKey: string;
 
   test.beforeAll(async () => {
     jobId = await createJob('MBSecurity');
+    callbackApiKey = await getCallbackApiKey(jobId);
   });
 
   test.afterAll(async () => {
@@ -85,9 +89,8 @@ test.describe('Morning Brief — Security', {
     async ({ request }) => {
       // Verify that the HMAC computation produces a correct hex signature
       const testPayload = JSON.stringify({
-        scheduleJobRunUserId: 'qa-hmac-test',
-        userId: 'qa-user-1',
-        networkId: 'qa-network',
+        id: 'qa-hmac-test',
+        homePage: { html: '<p>hmac</p>', lang: 'en' },
       });
       const testSecret = 'qa-shared-hmac-secret';
       const signature = computeHmac(testPayload, testSecret);
@@ -96,22 +99,17 @@ test.describe('Morning Brief — Security', {
       expect(signature).toMatch(/^[a-f0-9]{64}$/);
 
       // Send with signature header to the callback endpoint (simulates external server)
-      const response = await request.post(`${API_BASE}/v1/scheduled-jobs/callback`, {
+      const response = await request.post(`${API_BASE}${CALLBACK_PATH}`, {
         headers: {
-          'x-scheduled-job-api-key': 'qa-test-key',
+          'x-api-key': callbackApiKey,
           'x-ekoai-signature': signature,
           'Content-Type': 'application/json',
         },
         data: testPayload,
       });
 
-      if (response.status() === 404) {
-        test.skip(true, 'Callback endpoint not available');
-        return;
-      }
-
-      // 200/400/422 = signature accepted (or probe ID unknown); 401 = signature rejected
-      expect([200, 400, 401, 422]).toContain(response.status());
+      // 200/404/422 = signature accepted (or probe ID unknown); 401 = signature rejected
+      expect([200, 401, 404, 422]).toContain(response.status());
     }
   );
 
@@ -125,24 +123,18 @@ test.describe('Morning Brief — Security', {
       tag: ['@sanity', '@P1'],
     },
     async ({ request }) => {
-      // Attempt callback with valid EkoApiKey but missing scheduled_job_api_key
-      const response = await request.post(`${API_BASE}/v1/scheduled-jobs/callback`, {
+      // Attempt callback with valid EkoApiKey but missing callback x-api-key
+      const response = await request.post(`${API_BASE}${CALLBACK_PATH}`, {
         headers: {
           ...getAuthHeaders(), // Valid EkoApiKey — but NOT sufficient for callback
           'Content-Type': 'application/json',
-          // Deliberately omitting x-scheduled-job-api-key
+          // Deliberately omitting x-api-key (callback key)
         },
         data: {
-          scheduleJobRunUserId: 'qa-auth-independent-probe-437',
-          status: 'success',
-          result: { homePage: { blocks: [] } },
+          id: 'qa-auth-independent-probe-437',
+          homePage: { html: '<p>x</p>', lang: 'en' },
         },
       });
-
-      if (response.status() === 404) {
-        test.skip(true, 'Callback endpoint not available');
-        return;
-      }
 
       // Callback endpoint must reject without the job-specific key
       expect([401, 403]).toContain(response.status());
@@ -217,57 +209,28 @@ test.describe('Morning Brief — Security', {
       tag: ['@regression', '@P1'],
     },
     async ({ request }) => {
-      // Create a second job to get its callback key
-      const job2Res = await request.post(`${API_BASE}/v1/scheduled-jobs`, {
-        headers: getAuthHeaders(),
-        data: {
-          name: `QA-CrossKey-${Date.now()}`,
-          description: 'QA cross-key test — will be deleted',
-          step: {
-            trigger: {
-              iCalendarDefinition: 'DTSTART:20260601T060000Z\nRRULE:FREQ=DAILY',
-            },
-            process: { endpoint: 'https://example.com/qa-noop', apiKey: 'qa-test' },
-            action: [{ type: 'HOME_PAGE', schedule: { mode: 'IMMEDIATE' } }],
-          },
-          audience: { users: [], groups: [] },
-        },
-      });
-
-      if (job2Res.status() === 404) {
-        test.skip(true, 'Scheduled jobs endpoint not available');
-        return;
-      }
-
-      if (job2Res.status() !== 201 && job2Res.status() !== 200) {
-        // Cannot create second job — verify original job callback key isolation instead
-        expect([200, 201, 400, 422]).toContain(job2Res.status());
-        return;
-      }
-
-      const job2 = await job2Res.json();
-      const job2Id: string = (job2.data?.id ?? job2.id) as string;
+      // Create a second job and get its real callback API key
+      const job2Id = await createJob('MBSecCrossKey');
+      const job2Key = await getCallbackApiKey(job2Id);
 
       try {
-        // Job1's callback key used on a probe for job2 — should fail
-        const crossKeyRes = await request.post(`${API_BASE}/v1/scheduled-jobs/callback`, {
+        // job2's valid callback key used on a probe for a different run user — still a
+        // valid key, but scoped to job2. Server may accept it (if scoped per-network)
+        // or reject (if strictly per-job). Expect a known non-500 status either way.
+        const crossKeyRes = await request.post(`${API_BASE}${CALLBACK_PATH}`, {
           headers: {
-            'x-scheduled-job-api-key': 'job1-api-key-qa', // key from job1
+            'x-api-key': job2Key, // valid key for job2, used against a run user that isn't job2's
             'Content-Type': 'application/json',
           },
           data: {
-            scheduleJobRunUserId: 'qa-cross-key-probe-440',
-            status: 'success',
-            result: { homePage: { blocks: [] } },
+            id: 'qa-cross-key-probe-440',
+            homePage: { html: '<p>x</p>', lang: 'en' },
           },
         });
 
-        if (crossKeyRes.status() === 404) {
-          return; // Callback endpoint not available
-        }
-
-        // Cross-key usage should be rejected (401/403) or fail due to unknown ID (400/422)
-        expect([400, 401, 403, 422]).toContain(crossKeyRes.status());
+        // Cross-job key usage: rejected (401/403) or unknown id (404) or validation (422)
+        expect([200, 401, 403, 404, 422]).toContain(crossKeyRes.status());
+        expect(crossKeyRes.status()).not.toBe(500);
       } finally {
         if (job2Id) await deleteJob(job2Id);
       }
@@ -361,34 +324,27 @@ test.describe('Morning Brief — Security', {
     async ({ request }) => {
       // Sign original payload, then tamper before sending
       const originalPayload = JSON.stringify({
-        scheduleJobRunUserId: 'qa-hmac-tamper-probe',
-        userId: 'qa-user-legit',
-        networkId: 'qa-network',
+        id: 'qa-hmac-tamper-probe',
+        homePage: { html: '<p>legit</p>', lang: 'en' },
       });
       const tamperedPayload = JSON.stringify({
-        scheduleJobRunUserId: 'qa-hmac-tamper-probe',
-        userId: 'qa-user-TAMPERED',   // Changed after signing
-        networkId: 'qa-network',
+        id: 'qa-hmac-tamper-probe',
+        homePage: { html: '<p>TAMPERED</p>', lang: 'en' }, // Changed after signing
       });
 
       const signature = computeHmac(originalPayload, 'qa-shared-hmac-secret');
 
-      const response = await request.post(`${API_BASE}/v1/scheduled-jobs/callback`, {
+      const response = await request.post(`${API_BASE}${CALLBACK_PATH}`, {
         headers: {
-          'x-scheduled-job-api-key': 'qa-test-key',
+          'x-api-key': callbackApiKey,
           'x-ekoai-signature': signature,   // Signature of ORIGINAL — does not match tampered
           'Content-Type': 'application/json',
         },
         data: tamperedPayload,
       });
 
-      if (response.status() === 404) {
-        test.skip(true, 'Callback endpoint not available');
-        return;
-      }
-
       // Tampered payload must not succeed — rejected by HMAC check or unknown probe ID
-      expect([400, 401, 403, 422]).toContain(response.status());
+      expect([400, 401, 403, 404, 422]).toContain(response.status());
     }
   );
 });

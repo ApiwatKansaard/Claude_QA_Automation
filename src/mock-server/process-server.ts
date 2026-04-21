@@ -95,24 +95,18 @@ async function sendCallback(
   return new Promise<void>((resolve) => {
     setTimeout(async () => {
       try {
-        // Callback payload format: { id, homePage: { widgets, lang } }
-        // NOTE: EkoAI API does NOT accept "status" or "result" wrapper fields.
-        //       homePage must be at root level of the body.
+        // Callback payload format: { id, homePage?: { html, lang } }
+        // Contract: Confluence 3528917005 (spec §5.2) + Tech Spec AE-14600.
+        // NOTE: EkoAI API does NOT accept "status" / "result" / "quotaConsumed"
+        //       wrapper fields at the root. homePage sits at the root level.
+        //       `html` (string) replaces the deprecated `widgets` array
+        //       (per AE-14600: "Switched payload from widgets to content.html").
         const payload = JSON.stringify(resultStatus === 'fail' ? {
           id,
         } : {
           id,
           homePage: {
-            widgets: [
-              {
-                type: 'text-box',
-                mode: 'default',
-                structure: {
-                  title: 'QA Mock Server Response',
-                  content: `Test callback for run user ${id} at ${new Date().toISOString()}`,
-                },
-              },
-            ],
+            html: `<h1>QA Mock Server Response</h1><p>Test callback for run user ${id} at ${new Date().toISOString()}</p>`,
             lang: 'en',
           },
         });

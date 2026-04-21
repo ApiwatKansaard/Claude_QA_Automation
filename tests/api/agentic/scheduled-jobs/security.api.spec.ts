@@ -8,9 +8,12 @@
 import { test, expect } from '@playwright/test';
 import { getAuthHeaders } from '../../../../src/helpers/auth.helper';
 import { loadEnvConfig } from '../../../../src/config/env.config';
+import { createJob, deleteJob } from '../../../../src/helpers/job-factory';
+import { getCallbackApiKey } from '../../../../src/helpers/callback-key.helper';
 import * as crypto from 'crypto';
 
 const { apiBaseURL: API_BASE } = loadEnvConfig();
+const CALLBACK_PATH = '/v1/scheduled-jobs/runs/callback';
 
 /** Compute HMAC-SHA256 signature over payload string with given key. */
 function computeHmac(payload: string, secret: string): string {
@@ -18,6 +21,17 @@ function computeHmac(payload: string, secret: string): string {
 }
 
 test.describe('Scheduled Jobs — Security API', { tag: ['@api', '@scheduled-jobs', '@security'] }, () => {
+  let jobId: string;
+  let callbackApiKey: string;
+
+  test.beforeAll(async () => {
+    jobId = await createJob('SJSecurity');
+    callbackApiKey = await getCallbackApiKey(jobId);
+  });
+
+  test.afterAll(async () => {
+    if (jobId) await deleteJob(jobId);
+  });
 
   test('should verify HMAC signature when external server receives EkoAI request',
     {
@@ -26,7 +40,7 @@ test.describe('Scheduled Jobs — Security API', { tag: ['@api', '@scheduled-job
     },
     async ({ request }) => {
       // Verify HMAC signature computation
-      const testPayload = JSON.stringify({ id: 'test-id', status: 'success' });
+      const testPayload = JSON.stringify({ id: 'test-id', homePage: { html: '<p>x</p>', lang: 'en' } });
       const testSecret = 'qa-test-shared-secret';
       const signature = computeHmac(testPayload, testSecret);
 
@@ -34,21 +48,16 @@ test.describe('Scheduled Jobs — Security API', { tag: ['@api', '@scheduled-job
       expect(signature).toMatch(/^[a-f0-9]{64}$/);
 
       // Verify via callback endpoint (simulates external server receiving EkoAI request)
-      const response = await request.post(`${API_BASE}/v1/scheduled-jobs/callback`, {
+      const response = await request.post(`${API_BASE}${CALLBACK_PATH}`, {
         headers: {
-          'x-api-key': 'qa-test-key',
+          'x-api-key': callbackApiKey,
           'ekoai-signature': signature,
           'Content-Type': 'application/json',
         },
         data: testPayload,
       });
 
-      if (response.status() === 404) {
-        test.skip(true, 'Callback endpoint not available');
-        return;
-      }
-
-      expect([200, 400, 401, 422]).toContain(response.status());
+      expect([200, 401, 404, 422]).toContain(response.status());
     }
   );
 
@@ -127,22 +136,17 @@ test.describe('Scheduled Jobs — Security API', { tag: ['@api', '@scheduled-job
     },
     async ({ request }) => {
       // Send callback without EkoAI-Signature header
-      const response = await request.post(`${API_BASE}/v1/scheduled-jobs/callback`, {
+      const response = await request.post(`${API_BASE}${CALLBACK_PATH}`, {
         headers: {
-          'x-api-key': 'qa-test-key',
+          'x-api-key': callbackApiKey,
           // No ekoai-signature header
           'Content-Type': 'application/json',
         },
-        data: { id: 'test-id', status: 'success' },
+        data: { id: 'test-id', homePage: { html: '<p>x</p>', lang: 'en' } },
       });
 
-      if (response.status() === 404) {
-        test.skip(true, 'Callback endpoint not available');
-        return;
-      }
-
-      // If HMAC is required, should fail without it
-      expect([200, 400, 401, 403, 422]).toContain(response.status());
+      // If HMAC is required, should fail without it; else 200/404/422 for id probe
+      expect([200, 400, 401, 403, 404, 422]).toContain(response.status());
     }
   );
 
@@ -152,27 +156,22 @@ test.describe('Scheduled Jobs — Security API', { tag: ['@api', '@scheduled-job
       tag: ['@regression', '@P1'],
     },
     async ({ request }) => {
-      const originalPayload = JSON.stringify({ id: 'test-id', status: 'success' });
-      const tampered = JSON.stringify({ id: 'test-id', status: 'success', extra: 'injected' });
+      const originalPayload = JSON.stringify({ id: 'test-id', homePage: { html: '<p>legit</p>', lang: 'en' } });
+      const tampered = JSON.stringify({ id: 'test-id', homePage: { html: '<p>TAMPERED</p>', lang: 'en' } });
       const signature = computeHmac(originalPayload, 'qa-test-secret');
 
       // Send tampered payload with original signature
-      const response = await request.post(`${API_BASE}/v1/scheduled-jobs/callback`, {
+      const response = await request.post(`${API_BASE}${CALLBACK_PATH}`, {
         headers: {
-          'x-api-key': 'qa-test-key',
+          'x-api-key': callbackApiKey,
           'ekoai-signature': signature,
           'Content-Type': 'application/json',
         },
         data: tampered,
       });
 
-      if (response.status() === 404) {
-        test.skip(true, 'Callback endpoint not available');
-        return;
-      }
-
-      // Tampered payload should be rejected (signature mismatch) or accepted (if HMAC not verified)
-      expect([200, 400, 401, 403, 422]).toContain(response.status());
+      // Tampered payload should be rejected (signature mismatch) or 404 unknown id
+      expect([200, 400, 401, 403, 404, 422]).toContain(response.status());
     }
   );
 
