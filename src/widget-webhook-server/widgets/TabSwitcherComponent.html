@@ -1,0 +1,63 @@
+<div data-tabs class="mb-6">
+  <ul class="tablist flex gap-2 py-2 list-none m-0" role="tablist">
+    <li role="presentation">
+      <button
+        data-tab="all"
+        data-ref-id=""
+        data-postback-message=""
+        class="tab-btn is-active"
+        role="tab"
+        aria-controls="tab-all"
+      >
+        <span>All Channels</span>
+        <span class="tab-badge">4</span>
+      </button>
+    </li>
+    <li role="presentation">
+      <button data-tab="rtr" data-ref-id="" data-postback-message="" class="tab-btn" role="tab" aria-controls="tab-rtr">
+        <span>RTR</span>
+        <span class="tab-badge">2</span>
+      </button>
+    </li>
+    <li role="presentation">
+      <button
+        data-tab="modern-trade"
+        data-ref-id=""
+        data-postback-message=""
+        class="tab-btn"
+        role="tab"
+        aria-controls="tab-modern-trade"
+      >
+        <span>Modern Trade</span>
+        <span class="tab-badge">1</span>
+      </button>
+    </li>
+    <li role="presentation">
+      <button
+        data-tab="other"
+        data-ref-id=""
+        data-postback-message=""
+        class="tab-btn"
+        role="tab"
+        aria-controls="tab-other"
+      >
+        <span>Other</span>
+        <span class="tab-badge">0</span>
+      </button>
+    </li>
+  </ul>
+  <div>
+    <div data-panel="all" id="tab-all" role="tabpanel">
+      <p>This is the <strong>All Channels</strong> panel.</p>
+    </div>
+    <div data-panel="rtr" id="tab-rtr" role="tabpanel" hidden>
+      <p>This is the <strong>RTR</strong> panel.</p>
+    </div>
+    <div data-panel="modern-trade" id="tab-modern-trade" role="tabpanel" hidden>
+      <p>This is the <strong>Modern Trade</strong> panel.</p>
+    </div>
+    <div data-panel="other" id="tab-other" role="tabpanel" hidden>
+      <p>This is the <strong>Other</strong> panel.</p>
+    </div>
+  </div>
+</div>

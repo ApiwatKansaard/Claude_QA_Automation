@@ -1,0 +1,23 @@
+<div data-select-tabs class="mb-6">
+  <div class="relative">
+    <select class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm cursor-pointer appearance-none">
+      <option value="all">All</option>
+      <option value="option1">Option 1</option>
+      <option value="option2">Option 2</option>
+    </select>
+    <i
+      class="fa-regular fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs text-[var(--color-gray-5)] pointer-events-none"
+    ></i>
+  </div>
+  <div class="mt-4">
+    <div data-panel="all">
+      <p>Showing <strong>all</strong> items.</p>
+    </div>
+    <div data-panel="option1" hidden>
+      <p>Showing <strong>Option 1</strong> items.</p>
+    </div>
+    <div data-panel="option2" hidden>
+      <p>Showing <strong>Option 2</strong> items.</p>
+    </div>
+  </div>
+</div>

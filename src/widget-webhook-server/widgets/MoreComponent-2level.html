@@ -1,0 +1,41 @@
+<div data-part="level2" data-more-title="TOL" class="mb-6">
+  <button class="flex gap-1 items-center py-0.5 cursor-pointer bg-transparent border-0">
+    <span class="text-[10px] font-medium text-[var(--color-gray-5)] leading-3 whitespace-nowrap">More</span>
+    <i class="fa-regular fa-chevron-right text-xs text-[var(--color-gray-6)]"></i>
+  </button>
+  <template data-more-content="">
+    <div class="bg-white rounded-2xl p-4 flex flex-col gap-3">
+      <div class="flex items-start justify-between">
+        <div class="min-w-0">
+          <div class="text-sm font-medium text-[var(--color-gray-1)] leading-5 clamp-2">Detail Title</div>
+          <div class="text-xs italic text-[var(--color-gray-5)] leading-4 clamp-2">Detail subtitle</div>
+        </div>
+        <div data-more-title="Detail" class="shrink-0 ml-2">
+          <button class="flex gap-1 items-center py-0.5 cursor-pointer bg-transparent border-0">
+            <span class="text-[10px] font-medium text-[var(--color-gray-5)] leading-3 whitespace-nowrap">More</span>
+            <i class="fa-regular fa-chevron-right text-xs text-[var(--color-gray-6)]"></i>
+          </button>
+          <template data-more-content="">
+            <div class="bg-white rounded-2xl p-4 flex flex-col gap-2">
+              <div class="text-sm font-medium text-[var(--color-gray-1)]">Nested content</div>
+              <div class="text-xs italic text-[var(--color-gray-5)]">Opened from inside the first drawer</div>
+            </div>
+          </template>
+        </div>
+      </div>
+      <div class="flex gap-4">
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-[var(--color-gray-1)]">24,300</p>
+          <p class="text-xs text-[var(--color-gray-5)]">Actual Sub</p>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-1 text-[var(--color-decent-red)]">
+            <span class="text-sm font-medium">6.20%</span>
+            <i class="fa-solid fa-arrow-up text-[10px] shrink-0"></i>
+          </div>
+          <p class="text-xs text-[var(--color-gray-5)]">MTD MOM</p>
+        </div>
+      </div>
+    </div>
+  </template>
+</div>

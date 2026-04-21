@@ -1,0 +1,1364 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/embla-carousel@8/embla-carousel.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>:root { --color-primary: {{networkThemeColor}} !important; }</style>
+    <script type="module" crossorigin>(function(){let e=document.createElement(`link`).relList;if(e&&e.supports&&e.supports(`modulepreload`))return;for(let e of document.querySelectorAll(`link[rel="modulepreload"]`))n(e);new MutationObserver(e=>{for(let t of e)if(t.type===`childList`)for(let e of t.addedNodes)e.tagName===`LINK`&&e.rel===`modulepreload`&&n(e)}).observe(document,{childList:!0,subtree:!0});function t(e){let t={};return e.integrity&&(t.integrity=e.integrity),e.referrerPolicy&&(t.referrerPolicy=e.referrerPolicy),e.crossOrigin===`use-credentials`?t.credentials=`include`:e.crossOrigin===`anonymous`?t.credentials=`omit`:t.credentials=`same-origin`,t}function n(e){if(e.ep)return;e.ep=!0;let n=t(e);fetch(e.href,n)}})(),window.__gmQueue=window.__gmQueue??[],window.__gmCallback=()=>{let e=window.__gmQueue??[];window.__gmQueue=null,e.forEach(e=>e())};var e=document.createElement(`script`);e.src=`https://maps.googleapis.com/maps/api/js?key=AIzaSyDQkVyzhZKQRKRyM2CudKhC1KuLMEeCddw&loading=async&callback=__gmCallback&language=${document.documentElement.lang||`th`}`;function t(){return window.innerWidth<640}function n(){t()&&(document.documentElement.style.overflow=`hidden`)}function r(){Array.from(document.querySelectorAll(`.more-drawer`)).some(e=>e.style.display!==`none`)||(document.documentElement.style.overflow=``)}e.async=!0,document.head.appendChild(e);function i(e=document){e.querySelectorAll(`[data-chart-circular]`).forEach(e=>{let t=Number(e.dataset.value??0),n=e.closest(`[style*="--progress-color"]`),r=n?getComputedStyle(n).getPropertyValue(`--progress-color`).trim():`#29CB72`,i=Chart.getChart(e);i&&i.destroy(),new Chart(e,{type:`doughnut`,data:{datasets:[{data:[t,100-t],backgroundColor:[r,`#E0E0E0`],borderWidth:0,borderRadius:[50,0]}]},options:{cutout:`92%`,rotation:180,circumference:360,plugins:{legend:{display:!1},tooltip:{enabled:!1}},animation:{duration:800,easing:`easeInOutQuart`}}})})}function a(e=document){e.querySelectorAll(`canvas[data-chart-line]:not([data-chart-init])`).forEach(e=>{let t=e.parentElement.querySelector(`script[data-chart-line-config]`);if(!t)return;e.setAttribute(`data-chart-init`,``);let n=JSON.parse(t.textContent),r=Chart.getChart(e);r&&r.destroy(),new Chart(e,{type:n.type,data:{labels:n.labels,datasets:n.datasets},options:{responsive:!0,maintainAspectRatio:!1,plugins:{legend:{display:!1},tooltip:{enabled:!0,mode:`index`,intersect:!1}},scales:{x:{grid:{display:!1},ticks:{font:{size:9},color:`#9E9E9E`}},y:{min:1e3,max:7e3,ticks:{stepSize:1e3,font:{size:9},color:`#9E9E9E`,callback:e=>e/1e3+`k`},grid:{color:`#E5E5E5`,lineWidth:.8},border:{display:!1}}},interaction:{mode:`index`,intersect:!1},spanGaps:!0}});let i=e.closest(`[data-chart-line-card]`),a=i&&i.querySelector(`[data-part="legend"]`);a&&(a.innerHTML=n.datasets.map(e=>`<div class="flex items-center gap-1.5">
+          <span class="inline-block w-4 h-0.5 rounded-full" style="background: ${e.borderColor}"></span>
+          <span class="text-[10px] text-[var(--color-gray-1)]">${e.label}</span>
+        </div>`).join(``))})}function o(e=document){e.querySelectorAll(`[data-select-tabs]:not([data-select-tabs-initialized])`).forEach(e=>{e.setAttribute(`data-select-tabs-initialized`,``);let t=e.querySelector(`select`);t&&t.addEventListener(`change`,()=>{let n=t.value;e.querySelectorAll(`[data-panel]`).forEach(e=>{e.hidden=e.dataset.panel!==n})})})}function s(e=document){e.querySelectorAll(`[data-tabs]:not([data-tabs-initialized])`).forEach(e=>{e.setAttribute(`data-tabs-initialized`,``),e.querySelector(`[role="tablist"]`).addEventListener(`click`,t=>{let n=t.target.closest(`[data-tab]`);n&&(e.querySelectorAll(`[data-tab]`).forEach(e=>e.classList.toggle(`is-active`,e===n)),e.querySelectorAll(`[data-panel]`).forEach(e=>{e.hidden=e.dataset.panel!==n.dataset.tab}),window.parent.postMessage({type:`tab_btn_click`,dataset:{...n.dataset}},`*`))})})}function c(e=document){e.querySelectorAll(`[data-action-button]:not([data-action-button-initialized])`).forEach(e=>{e.setAttribute(`data-action-button-initialized`,``),e.addEventListener(`click`,()=>{window.parent.postMessage({type:`action_btn_click`,dataset:{...e.dataset}},`*`)})})}function l(e=document){e.querySelectorAll(`[data-carousel]`).forEach(e=>{e._embla&&(e._embla.destroy(),delete e._embla);let t=e.querySelector(`[data-carousel-viewport]`);t&&(e._embla=EmblaCarousel(t,{align:`start`}))})}function u(e=document){e.querySelectorAll(`[data-map]:not([data-map-initialized])`).forEach(e=>{e.setAttribute(`data-map-initialized`,``);let t=Number(e.dataset.lat??0),n=Number(e.dataset.lng??0),r=Number(e.dataset.radius??500);async function i(){let i={lat:t,lng:n},a=getComputedStyle(document.documentElement).getPropertyValue(`--color-map-radius`).trim()||`#0F86FE`,o=e.dataset.mapId||`DEMO_MAP_ID`,s=new google.maps.Map(e,{center:i,zoom:15,disableDefaultUI:!0,gestureHandling:`greedy`,mapId:o}),{AdvancedMarkerElement:c}=await google.maps.importLibrary(`marker`);new c({position:i,map:s}),new google.maps.Circle({map:s,center:i,radius:r,strokeColor:a,strokeOpacity:.8,strokeWeight:2,fillColor:a,fillOpacity:.1})}window.google?.maps?i():(window.__gmQueue=window.__gmQueue??[],window.__gmQueue.push(i))})}function d(e=document){let t=Array.from(e.querySelectorAll(`[data-markdown]`));if(t.length){if(!window.marked){let t=setInterval(()=>{window.marked&&(clearInterval(t),d(e))},50);return}t.forEach(e=>{let t=e.dataset.markdownSource??e.textContent.trim();e.dataset.markdownSource=t,e.innerHTML=window.marked.parse(t,{gfm:!0})})}}function f(e=document,t=null){e.querySelectorAll(`[data-more-title]:not([data-more-title-initialized])`).forEach(e=>{e.setAttribute(`data-more-title-initialized`,``);let p=e.dataset.moreTitle??``,m=e.querySelector(`button`),h=e.querySelector(`template[data-more-content]`),g=document.createElement(`div`);g.className=`fixed inset-0 bg-black/40 z-40 md:hidden`,g.style.display=`none`,document.body.appendChild(g);let _=document.createElement(`div`);_.className=`more-drawer fixed shadow-xl z-50 flex flex-col`,_.style.display=`none`;let v=document.createElement(`div`);if(v.className=`shrink-0 flex items-center gap-3 py-2 px-4`,v.innerHTML=`
+      ${t?`<button data-more-back class="flex items-center justify-center p-2 rounded-full bg-[var(--color-gray-9)] border-0 cursor-pointer shrink-0">
+             <i class="fa-regular fa-arrow-left text-xl text-[var(--color-gray-4)]"></i>
+           </button>`:``}
+      <div class="flex-1 min-w-0 text-base font-semibold text-[var(--color-gray-1)] truncate">${p}</div>
+      <button data-more-close class="flex items-center justify-center p-2 rounded-full bg-[var(--color-gray-9)] border-0 cursor-pointer shrink-0">
+        <i class="fa-regular fa-xmark text-xl text-[var(--color-gray-4)]"></i>
+      </button>
+    `,_.appendChild(v),h){let e=document.createElement(`div`);e.className=`flex-1 overflow-y-auto overscroll-y-contain px-6 pb-6`,e.appendChild(h.content.cloneNode(!0)),_.appendChild(e)}document.body.appendChild(_);function y(e,t,n,r){e.style.display=``,e.classList.add(t,n),requestAnimationFrame(()=>{requestAnimationFrame(()=>{e.classList.remove(n),e.classList.add(r)})});let i=!1;function a(){i||(i=!0,e.classList.remove(t,r),e.removeEventListener(`transitionend`,a))}e.addEventListener(`transitionend`,a),setTimeout(a,400)}function b(e,t,n,r,i){if(getComputedStyle(e).display===`none`){e.style.display=`none`;return}e.classList.add(t,n),requestAnimationFrame(()=>{requestAnimationFrame(()=>{e.classList.remove(n),e.classList.add(r)})});let a=!1;function o(){a||(a=!0,e.style.display=`none`,e.classList.remove(t,r),e.removeEventListener(`transitionend`,o),i?.())}e.addEventListener(`transitionend`,o),setTimeout(o,400)}function x(){n(),y(g,`fade-enter`,`fade-enter-from`,`fade-enter-to`),y(_,`sheet-enter`,`sheet-enter-from`,`sheet-enter-to`)}function S(){b(g,`fade-leave`,`fade-leave-from`,`fade-leave-to`),b(_,`sheet-leave`,`sheet-leave-from`,`sheet-leave-to`,r)}function C(){window.dispatchEvent(new CustomEvent(`close-all-drawers`)),x(),i(_),a(_),o(_),s(_),c(_),l(_),u(_),d(_)}function w(e){S(),e&&t&&t()}m&&m.addEventListener(`click`,C),g.addEventListener(`click`,()=>w(!1)),_.querySelector(`[data-more-close]`).addEventListener(`click`,()=>w(!1));let T=_.querySelector(`[data-more-back]`);T&&T.addEventListener(`click`,()=>w(!0)),window.addEventListener(`close-all-drawers`,()=>{_.style.display!==`none`&&w(!1)}),f(_,x)})}function p(e=document){i(e),a(e),o(e),s(e),c(e),l(e),u(e),d(e),f(e)}document.addEventListener(`DOMContentLoaded`,()=>p());</script>
+    <style rel="stylesheet" crossorigin>/*! tailwindcss v4.2.2 | MIT License | https://tailwindcss.com */
+@layer properties{@supports (((-webkit-hyphens:none)) and (not (margin-trim:inline))) or ((-moz-orient:inline) and (not (color:rgb(from red r g b)))){:root,:host{--color-primary:#00b40f}*,:before,:after,::backdrop{--tw-border-style:solid;--tw-leading:initial;--tw-font-weight:initial;--tw-tracking:initial;--tw-shadow:0 0 #0000;--tw-shadow-color:initial;--tw-shadow-alpha:100%;--tw-inset-shadow:0 0 #0000;--tw-inset-shadow-color:initial;--tw-inset-shadow-alpha:100%;--tw-ring-color:initial;--tw-ring-shadow:0 0 #0000;--tw-inset-ring-color:initial;--tw-inset-ring-shadow:0 0 #0000;--tw-ring-inset:initial;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-offset-shadow:0 0 #0000}}}@layer theme{:root,:host{--font-sans:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";--font-mono:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;--color-black:#000;--color-white:#fff;--spacing:.25rem;--text-xs:.75rem;--text-xs--line-height:calc(1 / .75);--text-sm:.875rem;--text-sm--line-height:calc(1.25 / .875);--text-base:1rem;--text-base--line-height:calc(1.5 / 1);--text-xl:1.25rem;--text-xl--line-height:calc(1.75 / 1.25);--font-weight-medium:500;--font-weight-semibold:600;--tracking-tight:-.025em;--leading-tight:1.25;--radius-xl:.75rem;--radius-2xl:1rem;--default-font-family:var(--font-sans);--default-mono-font-family:var(--font-mono)}}@layer base{*,:after,:before,::backdrop{box-sizing:border-box;border:0 solid;margin:0;padding:0}::file-selector-button{box-sizing:border-box;border:0 solid;margin:0;padding:0}html,:host{-webkit-text-size-adjust:100%;tab-size:4;line-height:1.5;font-family:var(--default-font-family,ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji");font-feature-settings:var(--default-font-feature-settings,normal);font-variation-settings:var(--default-font-variation-settings,normal);-webkit-tap-highlight-color:transparent}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;-webkit-text-decoration:inherit;-webkit-text-decoration:inherit;-webkit-text-decoration:inherit;-webkit-text-decoration:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,samp,pre{font-family:var(--default-mono-font-family,ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);font-feature-settings:var(--default-mono-font-feature-settings,normal);font-variation-settings:var(--default-mono-font-variation-settings,normal);font-size:1em}small{font-size:80%}sub,sup{vertical-align:baseline;font-size:75%;line-height:0;position:relative}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}:-moz-focusring{outline:auto}progress{vertical-align:baseline}summary{display:list-item}ol,ul,menu{list-style:none}img,svg,video,canvas,audio,iframe,embed,object{vertical-align:middle;display:block}img,video{max-width:100%;height:auto}button,input,select,optgroup,textarea{font:inherit;font-feature-settings:inherit;font-variation-settings:inherit;letter-spacing:inherit;color:inherit;opacity:1;background-color:#0000;border-radius:0}::file-selector-button{font:inherit;font-feature-settings:inherit;font-variation-settings:inherit;letter-spacing:inherit;color:inherit;opacity:1;background-color:#0000;border-radius:0}:where(select:is([multiple],[size])) optgroup{font-weight:bolder}:where(select:is([multiple],[size])) optgroup option{padding-inline-start:20px}::file-selector-button{margin-inline-end:4px}::placeholder{opacity:1}@supports (not ((-webkit-appearance:-apple-pay-button))) or (contain-intrinsic-size:1px){::placeholder{color:currentColor}@supports (color:color-mix(in lab, red, red)){::placeholder{color:color-mix(in oklab, currentcolor 50%, transparent)}}}textarea{resize:vertical}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-date-and-time-value{min-height:1lh;text-align:inherit}::-webkit-datetime-edit{display:inline-flex}::-webkit-datetime-edit-fields-wrapper{padding:0}::-webkit-datetime-edit{padding-block:0}::-webkit-datetime-edit-year-field{padding-block:0}::-webkit-datetime-edit-month-field{padding-block:0}::-webkit-datetime-edit-day-field{padding-block:0}::-webkit-datetime-edit-hour-field{padding-block:0}::-webkit-datetime-edit-minute-field{padding-block:0}::-webkit-datetime-edit-second-field{padding-block:0}::-webkit-datetime-edit-millisecond-field{padding-block:0}::-webkit-datetime-edit-meridiem-field{padding-block:0}::-webkit-calendar-picker-indicator{line-height:1}:-moz-ui-invalid{box-shadow:none}button,input:where([type=button],[type=reset],[type=submit]){appearance:button}::file-selector-button{appearance:button}::-webkit-inner-spin-button{height:auto}::-webkit-outer-spin-button{height:auto}[hidden]:where(:not([hidden=until-found])){display:none!important}}@layer components;@layer utilities{.absolute{position:absolute}.fixed{position:fixed}.relative{position:relative}.inset-0{inset:calc(var(--spacing) * 0)}.start{inset-inline-start:var(--spacing)}.end{inset-inline-end:var(--spacing)}.z-0{z-index:0}.z-1{z-index:1}.z-10{z-index:10}.z-40{z-index:40}.z-50{z-index:50}.container{width:100%}@media (width>=40rem){.container{max-width:40rem}}@media (width>=48rem){.container{max-width:48rem}}@media (width>=64rem){.container{max-width:64rem}}@media (width>=80rem){.container{max-width:80rem}}@media (width>=96rem){.container{max-width:96rem}}.m-0{margin:calc(var(--spacing) * 0)}.mx-auto{margin-inline:auto}.mt-2{margin-top:calc(var(--spacing) * 2)}.mt-4{margin-top:calc(var(--spacing) * 4)}.mt-6{margin-top:calc(var(--spacing) * 6)}.mt-\[2px\]{margin-top:2px}.mb-4{margin-bottom:calc(var(--spacing) * 4)}.mb-6{margin-bottom:calc(var(--spacing) * 6)}.ml-2{margin-left:calc(var(--spacing) * 2)}.block{display:block}.flex{display:flex}.grid{display:grid}.hidden{display:none}.inline{display:inline}.inline-block{display:inline-block}.h-0\.5{height:calc(var(--spacing) * .5)}.h-80{height:calc(var(--spacing) * 80)}.h-\[54px\]{height:54px}.h-\[100px\]{height:100px}.min-h-screen{min-height:100vh}.w-4{width:calc(var(--spacing) * 4)}.w-\[54px\]{width:54px}.w-\[100px\]{width:100px}.w-full{width:100%}.max-w-\[72px\]{max-width:72px}.max-w-\[1000px\]{max-width:1000px}.min-w-0{min-width:calc(var(--spacing) * 0)}.flex-1{flex:1}.flex-shrink-0,.shrink-0{flex-shrink:0}.cursor-pointer{cursor:pointer}.columns-1{columns:1}.break-inside-avoid{break-inside:avoid}.flex-col{flex-direction:column}.flex-row{flex-direction:row}.flex-wrap{flex-wrap:wrap}.items-center{align-items:center}.items-end{align-items:flex-end}.items-start{align-items:flex-start}.justify-between{justify-content:space-between}.justify-center{justify-content:center}.gap-0\.5{gap:calc(var(--spacing) * .5)}.gap-1{gap:calc(var(--spacing) * 1)}.gap-1\.5{gap:calc(var(--spacing) * 1.5)}.gap-2{gap:calc(var(--spacing) * 2)}.gap-3{gap:calc(var(--spacing) * 3)}.gap-4{gap:calc(var(--spacing) * 4)}.gap-6{gap:calc(var(--spacing) * 6)}.gap-8{gap:calc(var(--spacing) * 8)}.gap-\[2px\]{gap:2px}.gap-\[3px\]{gap:3px}.truncate{text-overflow:ellipsis;white-space:nowrap;overflow:hidden}.overflow-hidden{overflow:hidden}.overflow-y-auto{overflow-y:auto}.overscroll-y-contain{overscroll-behavior-y:contain}.rounded-2xl{border-radius:var(--radius-2xl)}.rounded-full{border-radius:3.40282e38px}.rounded-xl{border-radius:var(--radius-xl)}.border{border-style:var(--tw-border-style);border-width:1px}.border-0{border-style:var(--tw-border-style);border-width:0}.bg-\[\#f5f5f5\]{background-color:#f5f5f5}.bg-\[var\(--color-gray-9\)\]{background-color:var(--color-gray-9)}.bg-black\/40{background-color:#0006}@supports (color:color-mix(in lab, red, red)){.bg-black\/40{background-color:color-mix(in oklab, var(--color-black) 40%, transparent)}}.bg-transparent{background-color:#0000}.bg-white{background-color:var(--color-white)}.object-cover{object-fit:cover}.p-2{padding:calc(var(--spacing) * 2)}.p-4{padding:calc(var(--spacing) * 4)}.p-5{padding:calc(var(--spacing) * 5)}.px-4{padding-inline:calc(var(--spacing) * 4)}.px-6{padding-inline:calc(var(--spacing) * 6)}.py-0\.5{padding-block:calc(var(--spacing) * .5)}.py-2{padding-block:calc(var(--spacing) * 2)}.pb-6{padding-bottom:calc(var(--spacing) * 6)}.text-center{text-align:center}.text-base{font-size:var(--text-base);line-height:var(--tw-leading,var(--text-base--line-height))}.text-sm{font-size:var(--text-sm);line-height:var(--tw-leading,var(--text-sm--line-height))}.text-xl{font-size:var(--text-xl);line-height:var(--tw-leading,var(--text-xl--line-height))}.text-xs{font-size:var(--text-xs);line-height:var(--tw-leading,var(--text-xs--line-height))}.text-\[9px\]{font-size:9px}.text-\[10px\]{font-size:10px}.text-\[12px\]{font-size:12px}.leading-3{--tw-leading:calc(var(--spacing) * 3);line-height:calc(var(--spacing) * 3)}.leading-4{--tw-leading:calc(var(--spacing) * 4);line-height:calc(var(--spacing) * 4)}.leading-5{--tw-leading:calc(var(--spacing) * 5);line-height:calc(var(--spacing) * 5)}.leading-\[1\.6\]{--tw-leading:1.6;line-height:1.6}.leading-\[1\.43\]{--tw-leading:1.43;line-height:1.43}.leading-none{--tw-leading:1;line-height:1}.leading-tight{--tw-leading:var(--leading-tight);line-height:var(--leading-tight)}.font-medium{--tw-font-weight:var(--font-weight-medium);font-weight:var(--font-weight-medium)}.font-semibold{--tw-font-weight:var(--font-weight-semibold);font-weight:var(--font-weight-semibold)}.tracking-tight{--tw-tracking:var(--tracking-tight);letter-spacing:var(--tracking-tight)}.break-words{overflow-wrap:break-word}.whitespace-nowrap{white-space:nowrap}.whitespace-pre-line{white-space:pre-line}.text-\[\#9E9E9E\]{color:#9e9e9e}.text-\[var\(--color-decent-red\)\]{color:var(--color-decent-red)}.text-\[var\(--color-gray-1\)\]{color:var(--color-gray-1)}.text-\[var\(--color-gray-3\)\]{color:var(--color-gray-3)}.text-\[var\(--color-gray-4\)\]{color:var(--color-gray-4)}.text-\[var\(--color-gray-5\)\]{color:var(--color-gray-5)}.text-\[var\(--color-gray-6\)\]{color:var(--color-gray-6)}.text-\[var\(--color-primary\)\]{color:var(--color-primary)}.italic{font-style:italic}.shadow-xl{--tw-shadow:0 20px 25px -5px var(--tw-shadow-color,#0000001a), 0 8px 10px -6px var(--tw-shadow-color,#0000001a);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}@media (width>=40rem){.sm\:p-6{padding:calc(var(--spacing) * 6)}}@media (width>=48rem){.md\:block{display:block}.md\:hidden{display:none}.md\:columns-2{columns:2}}@media (width>=64rem){.lg\:columns-3{columns:3}.lg\:p-8{padding:calc(var(--spacing) * 8)}}}@property --color-primary{syntax:"<color>";inherits:true;initial-value:#00b40f}:root{--color-primary:#00b40f;--color-gray-1:#212121;--color-gray-2:#424242;--color-gray-3:#616161;--color-gray-4:#757575;--color-gray-5:#9e9e9e;--color-gray-6:#bdbdbd;--color-gray-8:#e5e5e5;--color-gray-9:#f5f5f5;--color-gray-10:#fafafa;--base-card-bg:#f5f5f5;--color-decent-green:#29cb72;--color-decent-red:#ff5252;--color-decent-yellow:#ffb400;--color-decent-purple:#7c3aed;--color-decent-pink:#e61e73;--color-decent-gray:#bdbdbd;--color-map-radius:#0f86fe}[data-part=avatar][src=""]{display:none}.tablist{scrollbar-width:thin;overflow-y:auto}.tab-btn{cursor:pointer;white-space:nowrap;color:var(--color-gray-3);border:1px solid var(--color-gray-8);background:#ffffff4d;border-radius:9999px;align-items:center;gap:8px;padding:8px 8px 8px 16px;font-size:.875rem;font-weight:600;transition:color .15s,background-color .15s,border-color .15s;display:inline-flex}.tab-btn:hover{color:var(--color-gray-1)}.tab-btn.is-active{background-color:var(--color-primary);color:#fff;border-color:#0000}.tab-badge{width:20px;height:20px;color:var(--color-gray-3);background:var(--color-gray-9);border-radius:10px;justify-content:center;align-items:center;font-size:.75rem;font-weight:600;display:inline-flex}.tab-btn.is-active .tab-badge{background:#ffffffe6}.z-1{z-index:1}.widget-base-card{background:var(--base-card-bg)}.text-widget{background-color:#fff;background-image:linear-gradient(210deg, var(--text-bg,#fff) 0%, var(--text-bg,#fff) 100%)}@supports (color:color-mix(in lab, red, red)){.text-widget{background-image:linear-gradient(210deg, color-mix(in srgb, var(--text-bg,#fff) 70%, transparent) 0%, var(--text-bg,#fff) 100%)}}.text-widget{color:var(--text-color,var(--color-gray-1))}.text-widget [data-part=text]:first-child{margin-top:0}.clamp-2{-webkit-line-clamp:2;-webkit-box-orient:vertical;display:-webkit-box;overflow:hidden}.custom-icon{background-position:50%;background-repeat:no-repeat;background-size:contain;width:1em;height:1em;display:inline-block}.fa-regular,.fa-solid{background-color:currentColor;width:1em;height:1em;display:inline-block;-webkit-mask-position:50%;mask-position:50%;-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}.fa-bullseye-arrow{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='black' d='M361.5 218.4c4.2 11.8 6.5 24.4 6.5 37.6c0 61.9-50.1 112-112 112s-112-50.1-112-112s50.1-112 112-112c13.2 0 25.9 2.3 37.6 6.5l4.9-4.9-7.6-45.8C279.6 97.3 268 96 256 96C167.6 96 96 167.6 96 256s71.6 160 160 160s160-71.6 160-160c0-12-1.3-23.6-3.8-34.9l-45.8-7.6-4.9 4.9zm97.4-8.1c3.3 14.7 5 30 5 45.7c0 114.9-93.1 208-208 208S48 370.9 48 256S141.1 48 256 48c15.7 0 31 1.7 45.7 5l38.8-38.8C314 5 285.6 0 256 0C114.6 0 0 114.6 0 256S114.6 512 256 512s256-114.6 256-256c0-29.6-5-58-14.3-84.5L459 210.3zm-93.9-29.4l50.7 8.4c10.2 1.7 20.6-1.6 27.9-8.9l51.2-51.2c8.1-8.1 5.3-21.9-5.4-26.2L432 80 409 22.5c-4.3-10.7-18-13.5-26.2-5.4L331.6 68.4c-7.3 7.3-10.6 17.7-8.9 27.9l8.4 50.7L239 239c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l92.1-92.1z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='black' d='M361.5 218.4c4.2 11.8 6.5 24.4 6.5 37.6c0 61.9-50.1 112-112 112s-112-50.1-112-112s50.1-112 112-112c13.2 0 25.9 2.3 37.6 6.5l4.9-4.9-7.6-45.8C279.6 97.3 268 96 256 96C167.6 96 96 167.6 96 256s71.6 160 160 160s160-71.6 160-160c0-12-1.3-23.6-3.8-34.9l-45.8-7.6-4.9 4.9zm97.4-8.1c3.3 14.7 5 30 5 45.7c0 114.9-93.1 208-208 208S48 370.9 48 256S141.1 48 256 48c15.7 0 31 1.7 45.7 5l38.8-38.8C314 5 285.6 0 256 0C114.6 0 0 114.6 0 256S114.6 512 256 512s256-114.6 256-256c0-29.6-5-58-14.3-84.5L459 210.3zm-93.9-29.4l50.7 8.4c10.2 1.7 20.6-1.6 27.9-8.9l51.2-51.2c8.1-8.1 5.3-21.9-5.4-26.2L432 80 409 22.5c-4.3-10.7-18-13.5-26.2-5.4L331.6 68.4c-7.3 7.3-10.6 17.7-8.9 27.9l8.4 50.7L239 239c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l92.1-92.1z'/%3E%3C/svg%3E")}.fa-chevron-right{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 512'%3E%3Cpath fill='black' d='M305 239c9.4 9.4 9.4 24.6 0 33.9L113 465c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l175-175L79 81c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L305 239z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 512'%3E%3Cpath fill='black' d='M305 239c9.4 9.4 9.4 24.6 0 33.9L113 465c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l175-175L79 81c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L305 239z'/%3E%3C/svg%3E")}.fa-chevron-left{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 512'%3E%3Cpath fill='black' d='M15 239c-9.4 9.4-9.4 24.6 0 33.9L207 465c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9L65.9 256 241 81c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0L15 239z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 512'%3E%3Cpath fill='black' d='M15 239c-9.4 9.4-9.4 24.6 0 33.9L207 465c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9L65.9 256 241 81c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0L15 239z'/%3E%3C/svg%3E")}.fa-caret-down{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 512'%3E%3Cpath fill='black' d='M160 329.4L249.4 240 70.6 240 160 329.4zm22.6 45.3c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-9.2-9.2-11.9-22.9-6.9-34.9s16.6-19.8 29.6-19.8l256 0c12.9 0 24.6 7.8 29.6 19.8s2.2 25.7-6.9 34.9l-128 128z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 512'%3E%3Cpath fill='black' d='M160 329.4L249.4 240 70.6 240 160 329.4zm22.6 45.3c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-9.2-9.2-11.9-22.9-6.9-34.9s16.6-19.8 29.6-19.8l256 0c12.9 0 24.6 7.8 29.6 19.8s2.2 25.7-6.9 34.9l-128 128z'/%3E%3C/svg%3E")}.fa-chevron-down{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='black' d='M239 401c9.4 9.4 24.6 9.4 33.9 0L465 209c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-175 175L81 175c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9L239 401z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='black' d='M239 401c9.4 9.4 24.6 9.4 33.9 0L465 209c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-175 175L81 175c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9L239 401z'/%3E%3C/svg%3E")}.fa-plus{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 448 512'%3E%3Cpath fill='black' d='M248 72c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 160L40 232c-13.3 0-24 10.7-24 24s10.7 24 24 24l160 0 0 160c0 13.3 10.7 24 24 24s24-10.7 24-24l0-160 160 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-160 0 0-160z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 448 512'%3E%3Cpath fill='black' d='M248 72c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 160L40 232c-13.3 0-24 10.7-24 24s10.7 24 24 24l160 0 0 160c0 13.3 10.7 24 24 24s24-10.7 24-24l0-160 160 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-160 0 0-160z'/%3E%3C/svg%3E")}.fa-minus{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 448 512'%3E%3Cpath fill='black' d='M432 256c0 13.3-10.7 24-24 24L40 280c-13.3 0-24-10.7-24-24s10.7-24 24-24l368 0c13.3 0 24 10.7 24 24z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 448 512'%3E%3Cpath fill='black' d='M432 256c0 13.3-10.7 24-24 24L40 280c-13.3 0-24-10.7-24-24s10.7-24 24-24l368 0c13.3 0 24 10.7 24 24z'/%3E%3C/svg%3E")}.fa-flag{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 448 512'%3E%3Cpath fill='black' d='M64 32C64 14.3 49.7 0 32 0S0 14.3 0 32L0 64 0 368 0 480c0 17.7 14.3 32 32 32s32-14.3 32-32l0-128 64.3-16.1c41.1-10.3 84.6-5.5 122.5 13.4c44.2 22.1 95.5 24.8 141.7 7.4l34.7-13c12.5-4.7 20.8-16.6 20.8-30l0-247.7c0-23-24.2-38-44.8-27.7l-9.6 4.8c-46.3 23.2-100.8 23.2-147.1 0c-35.1-17.6-75.4-22-113.5-12.5L64 48l0-16z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 448 512'%3E%3Cpath fill='black' d='M64 32C64 14.3 49.7 0 32 0S0 14.3 0 32L0 64 0 368 0 480c0 17.7 14.3 32 32 32s32-14.3 32-32l0-128 64.3-16.1c41.1-10.3 84.6-5.5 122.5 13.4c44.2 22.1 95.5 24.8 141.7 7.4l34.7-13c12.5-4.7 20.8-16.6 20.8-30l0-247.7c0-23-24.2-38-44.8-27.7l-9.6 4.8c-46.3 23.2-100.8 23.2-147.1 0c-35.1-17.6-75.4-22-113.5-12.5L64 48l0-16z'/%3E%3C/svg%3E")}.fa-chart-area{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='black' d='M48 56c0-13.3-10.7-24-24-24S0 42.7 0 56L0 408c0 39.8 32.2 72 72 72l416 0c13.3 0 24-10.7 24-24s-10.7-24-24-24L72 432c-13.3 0-24-10.7-24-24L48 56zM286.1 225.9c9 9 21.2 14.1 33.9 14.1s24.9-5.1 33.9-14.1l27.3-27.3L432 257.8l0 78.2-288 0 0-92.1 80-80 62.1 62.1zM320 192l-33.9-33.9-39.4-39.4c-12.5-12.5-32.8-12.5-45.3 0l-91.3 91.3c-9 9-14.1 21.2-14.1 33.9L96 352c0 17.7 14.3 32 32 32l320 0c17.7 0 32-14.3 32-32l0-94.2c0-11.5-4.1-22.5-11.6-31.2l-62-72.3c-12.1-14.2-33.7-15-46.9-1.8l-5.6 5.6L320 192z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='black' d='M48 56c0-13.3-10.7-24-24-24S0 42.7 0 56L0 408c0 39.8 32.2 72 72 72l416 0c13.3 0 24-10.7 24-24s-10.7-24-24-24L72 432c-13.3 0-24-10.7-24-24L48 56zM286.1 225.9c9 9 21.2 14.1 33.9 14.1s24.9-5.1 33.9-14.1l27.3-27.3L432 257.8l0 78.2-288 0 0-92.1 80-80 62.1 62.1zM320 192l-33.9-33.9-39.4-39.4c-12.5-12.5-32.8-12.5-45.3 0l-91.3 91.3c-9 9-14.1 21.2-14.1 33.9L96 352c0 17.7 14.3 32 32 32l320 0c17.7 0 32-14.3 32-32l0-94.2c0-11.5-4.1-22.5-11.6-31.2l-62-72.3c-12.1-14.2-33.7-15-46.9-1.8l-5.6 5.6L320 192z'/%3E%3C/svg%3E")}.fa-xmark{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'%3E%3Cpath fill='black' d='M345 137c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-119 119L73 103c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9l119 119L39 375c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l119-119L311 409c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-119-119L345 137z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'%3E%3Cpath fill='black' d='M345 137c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-119 119L73 103c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9l119 119L39 375c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l119-119L311 409c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-119-119L345 137z'/%3E%3C/svg%3E")}.fa-arrow-up{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'%3E%3Cpath fill='black' d='M169.4 41.4c12.5-12.5 32.8-12.5 45.3 0l160 160c9.2 9.2 11.9 22.9 6.9 34.9s-16.6 19.8-29.6 19.8l-96 0 0 184c0 22.1-17.9 40-40 40l-48 0c-22.1 0-40-17.9-40-40l0-184-96 0c-12.9 0-24.6-7.8-29.6-19.8s-2.2-25.7 6.9-34.9l160-160z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'%3E%3Cpath fill='black' d='M169.4 41.4c12.5-12.5 32.8-12.5 45.3 0l160 160c9.2 9.2 11.9 22.9 6.9 34.9s-16.6 19.8-29.6 19.8l-96 0 0 184c0 22.1-17.9 40-40 40l-48 0c-22.1 0-40-17.9-40-40l0-184-96 0c-12.9 0-24.6-7.8-29.6-19.8s-2.2-25.7 6.9-34.9l160-160z'/%3E%3C/svg%3E")}.fa-arrow-down{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'%3E%3Cpath fill='black' d='M214.6 470.6c-12.5 12.5-32.8 12.5-45.3 0l-160-160c-9.2-9.2-11.9-22.9-6.9-34.9s16.6-19.8 29.6-19.8l96 0 0-184c0-22.1 17.9-40 40-40l48 0c22.1 0 40 17.9 40 40l0 184 96 0c12.9 0 24.6 7.8 29.6 19.8s2.2 25.7-6.9 34.9l-160 160z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'%3E%3Cpath fill='black' d='M214.6 470.6c-12.5 12.5-32.8 12.5-45.3 0l-160-160c-9.2-9.2-11.9-22.9-6.9-34.9s16.6-19.8 29.6-19.8l96 0 0-184c0-22.1 17.9-40 40-40l48 0c22.1 0 40 17.9 40 40l0 184 96 0c12.9 0 24.6 7.8 29.6 19.8s2.2 25.7-6.9 34.9l-160 160z'/%3E%3C/svg%3E")}.fa-store{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 576 512'%3E%3Cpath fill='black' d='M507.1 129.5s0 0 0 0c5.8 9.2 6.4 20.5 2.3 30.1c-3.9 9.2-11.1 14.8-20.1 16c-2 .3-3.9 .4-5.8 .4c-11.7 0-22.2-5.1-29.7-13.2c-9.1-10-22-15.7-35.6-15.7s-26.5 5.8-35.5 15.8c-7.3 8.1-17.7 13.2-29.6 13.2c-11.8 0-22.3-5.1-29.6-13.2c-9.1-10.1-22-15.8-35.6-15.8s-26.5 5.7-35.6 15.8c-7.3 8.1-17.7 13.2-29.6 13.2c-11.8 0-22.3-5.1-29.6-13.2c-9.1-10.1-22-15.8-35.6-15.8s-26.5 5.7-35.6 15.8c-7.3 8.1-17.7 13.2-29.6 13.2c-1.8 0-3.8-.1-5.8-.4c-8.9-1.2-16-6.8-19.9-16c-4.1-9.6-3.5-20.9 2.3-30.1c0 0 0 0 0 0s0 0 0 0L120.4 48l335.2 0 51.5 81.5zM483.5 224c4.1 0 8.1-.3 12-.8c55.5-7.4 81.8-72.5 52.1-119.4L490.3 13.1C485.2 5 476.1 0 466.4 0L109.6 0C99.9 0 90.8 5 85.7 13.1L28.3 103.8c-29.6 46.8-3.4 111.9 51.9 119.4c4 .5 8.1 .8 12.1 .8c0 0 0 0 0 0c19.6 0 37.5-6.4 51.9-17c4.8-3.5 9.2-7.6 13.2-11.9c4 4.4 8.4 8.4 13.2 11.9c14.5 10.6 32.4 17 52 17c19.6 0 37.5-6.4 52-17c4.8-3.5 9.2-7.6 13.2-12c4 4.4 8.4 8.4 13.2 11.9c14.5 10.6 32.4 17 52 17c19.8 0 37.8-6.5 52.3-17.3c4.7-3.5 9-7.4 12.9-11.7c3.9 4.3 8.3 8.3 13 11.8c14.5 10.7 32.5 17.2 52.2 17.2c0 0 0 0 0 0zM112 336l0-81.6c-6.4 1.1-12.9 1.6-19.6 1.6c-5.5 0-11-.4-16.3-1.1l-.1 0c-4.1-.6-8.1-1.3-12-2.3L64 336l0 48 0 64c0 35.3 28.7 64 64 64l320 0c35.3 0 64-28.7 64-64l0-64 0-48 0-83.4c-4 1-8 1.8-12.3 2.3c0 0 0 0-.1 0c-5.3 .7-10.7 1.1-16.2 1.1c-6.6 0-13.1-.5-19.4-1.6l0 81.6-352 0zm352 48l0 64c0 8.8-7.2 16-16 16l-320 0c-8.8 0-16-7.2-16-16l0-64 352 0z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 576 512'%3E%3Cpath fill='black' d='M507.1 129.5s0 0 0 0c5.8 9.2 6.4 20.5 2.3 30.1c-3.9 9.2-11.1 14.8-20.1 16c-2 .3-3.9 .4-5.8 .4c-11.7 0-22.2-5.1-29.7-13.2c-9.1-10-22-15.7-35.6-15.7s-26.5 5.8-35.5 15.8c-7.3 8.1-17.7 13.2-29.6 13.2c-11.8 0-22.3-5.1-29.6-13.2c-9.1-10.1-22-15.8-35.6-15.8s-26.5 5.7-35.6 15.8c-7.3 8.1-17.7 13.2-29.6 13.2c-11.8 0-22.3-5.1-29.6-13.2c-9.1-10.1-22-15.8-35.6-15.8s-26.5 5.7-35.6 15.8c-7.3 8.1-17.7 13.2-29.6 13.2c-1.8 0-3.8-.1-5.8-.4c-8.9-1.2-16-6.8-19.9-16c-4.1-9.6-3.5-20.9 2.3-30.1c0 0 0 0 0 0s0 0 0 0L120.4 48l335.2 0 51.5 81.5zM483.5 224c4.1 0 8.1-.3 12-.8c55.5-7.4 81.8-72.5 52.1-119.4L490.3 13.1C485.2 5 476.1 0 466.4 0L109.6 0C99.9 0 90.8 5 85.7 13.1L28.3 103.8c-29.6 46.8-3.4 111.9 51.9 119.4c4 .5 8.1 .8 12.1 .8c0 0 0 0 0 0c19.6 0 37.5-6.4 51.9-17c4.8-3.5 9.2-7.6 13.2-11.9c4 4.4 8.4 8.4 13.2 11.9c14.5 10.6 32.4 17 52 17c19.6 0 37.5-6.4 52-17c4.8-3.5 9.2-7.6 13.2-12c4 4.4 8.4 8.4 13.2 11.9c14.5 10.6 32.4 17 52 17c19.8 0 37.8-6.5 52.3-17.3c4.7-3.5 9-7.4 12.9-11.7c3.9 4.3 8.3 8.3 13 11.8c14.5 10.7 32.5 17.2 52.2 17.2c0 0 0 0 0 0zM112 336l0-81.6c-6.4 1.1-12.9 1.6-19.6 1.6c-5.5 0-11-.4-16.3-1.1l-.1 0c-4.1-.6-8.1-1.3-12-2.3L64 336l0 48 0 64c0 35.3 28.7 64 64 64l320 0c35.3 0 64-28.7 64-64l0-64 0-48 0-83.4c-4 1-8 1.8-12.3 2.3c0 0 0 0-.1 0c-5.3 .7-10.7 1.1-16.2 1.1c-6.6 0-13.1-.5-19.4-1.6l0 81.6-352 0zm352 48l0 64c0 8.8-7.2 16-16 16l-320 0c-8.8 0-16-7.2-16-16l0-64 352 0z'/%3E%3C/svg%3E")}.fa-store-alt{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 512'%3E%3Cpath fill='black' d='M0 185.8c0-6.4 1.6-12.7 4.7-18.3L82.4 25C90.8 9.6 106.9 0 124.5 0l391 0c17.6 0 33.7 9.6 42.1 25l77.7 142.4c3.1 5.6 4.7 11.9 4.7 18.3c0 21.1-17.1 38.2-38.2 38.2L576 224l0 264c0 13.3-10.7 24-24 24s-24-10.7-24-24l0-264-144 0 0 248c0 22.1-17.9 40-40 40l-240 0c-22.1 0-40-17.9-40-40l0-248-25.8 0C17.1 224 0 206.9 0 185.8zM112 224l0 96 224 0 0-96-224 0zM515.5 48l-391 0L54.7 176l530.6 0L515.5 48zM112 464l224 0 0-96-224 0 0 96z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 512'%3E%3Cpath fill='black' d='M0 185.8c0-6.4 1.6-12.7 4.7-18.3L82.4 25C90.8 9.6 106.9 0 124.5 0l391 0c17.6 0 33.7 9.6 42.1 25l77.7 142.4c3.1 5.6 4.7 11.9 4.7 18.3c0 21.1-17.1 38.2-38.2 38.2L576 224l0 264c0 13.3-10.7 24-24 24s-24-10.7-24-24l0-264-144 0 0 248c0 22.1-17.9 40-40 40l-240 0c-22.1 0-40-17.9-40-40l0-248-25.8 0C17.1 224 0 206.9 0 185.8zM112 224l0 96 224 0 0-96-224 0zM515.5 48l-391 0L54.7 176l530.6 0L515.5 48zM112 464l224 0 0-96-224 0 0 96z'/%3E%3C/svg%3E")}.fa-chart-line{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='black' d='M48 56c0-13.3-10.7-24-24-24S0 42.7 0 56L0 408c0 39.8 32.2 72 72 72l416 0c13.3 0 24-10.7 24-24s-10.7-24-24-24L72 432c-13.3 0-24-10.7-24-24L48 56zM473 169c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-119 119-79-79c-4.5-4.5-10.6-7-17-7s-12.5 2.5-17 7l-96 96c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l79-79 79 79c9.4 9.4 24.6 9.4 33.9 0L473 169z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='black' d='M48 56c0-13.3-10.7-24-24-24S0 42.7 0 56L0 408c0 39.8 32.2 72 72 72l416 0c13.3 0 24-10.7 24-24s-10.7-24-24-24L72 432c-13.3 0-24-10.7-24-24L48 56zM473 169c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-119 119-79-79c-4.5-4.5-10.6-7-17-7s-12.5 2.5-17 7l-96 96c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l79-79 79 79c9.4 9.4 24.6 9.4 33.9 0L473 169z'/%3E%3C/svg%3E")}.fa-sitemap{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 576 512'%3E%3Cpath fill='black' d='M320 80l0 64-64 0 0-64 64 0zM256 32c-26.5 0-48 21.5-48 48l0 64c0 26.5 21.5 48 48 48l8 0 0 40-152 0c-30.9 0-56 25.1-56 56l0 32-8 0c-26.5 0-48 21.5-48 48l0 64c0 26.5 21.5 48 48 48l64 0c26.5 0 48-21.5 48-48l0-64c0-26.5-21.5-48-48-48l-8 0 0-32c0-4.4 3.6-8 8-8l152 0 0 40-8 0c-26.5 0-48 21.5-48 48l0 64c0 26.5 21.5 48 48 48l64 0c26.5 0 48-21.5 48-48l0-64c0-26.5-21.5-48-48-48l-8 0 0-40 152 0c4.4 0 8 3.6 8 8l0 32-8 0c-26.5 0-48 21.5-48 48l0 64c0 26.5 21.5 48 48 48l64 0c26.5 0 48-21.5 48-48l0-64c0-26.5-21.5-48-48-48l-8 0 0-32c0-30.9-25.1-56-56-56l-152 0 0-40 8 0c26.5 0 48-21.5 48-48l0-64c0-26.5-21.5-48-48-48l-64 0zM48 368l64 0 0 64-64 0 0-64zm208 0l64 0 0 64-64 0 0-64zm208 0l64 0 0 64-64 0 0-64z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 576 512'%3E%3Cpath fill='black' d='M320 80l0 64-64 0 0-64 64 0zM256 32c-26.5 0-48 21.5-48 48l0 64c0 26.5 21.5 48 48 48l8 0 0 40-152 0c-30.9 0-56 25.1-56 56l0 32-8 0c-26.5 0-48 21.5-48 48l0 64c0 26.5 21.5 48 48 48l64 0c26.5 0 48-21.5 48-48l0-64c0-26.5-21.5-48-48-48l-8 0 0-32c0-4.4 3.6-8 8-8l152 0 0 40-8 0c-26.5 0-48 21.5-48 48l0 64c0 26.5 21.5 48 48 48l64 0c26.5 0 48-21.5 48-48l0-64c0-26.5-21.5-48-48-48l-8 0 0-40 152 0c4.4 0 8 3.6 8 8l0 32-8 0c-26.5 0-48 21.5-48 48l0 64c0 26.5 21.5 48 48 48l64 0c26.5 0 48-21.5 48-48l0-64c0-26.5-21.5-48-48-48l-8 0 0-32c0-30.9-25.1-56-56-56l-152 0 0-40 8 0c26.5 0 48-21.5 48-48l0-64c0-26.5-21.5-48-48-48l-64 0zM48 368l64 0 0 64-64 0 0-64zm208 0l64 0 0 64-64 0 0-64zm208 0l64 0 0 64-64 0 0-64z'/%3E%3C/svg%3E")}.fa-chart-pie{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 576 512'%3E%3Cpath fill='black' d='M493.1 192L352 192l0-141.1C423.5 64 480 120.5 493.1 192zM352 240l175.4 0c9 0 16.6-7 16.6-16C544 100.3 443.7 0 320 0c-9 0-16 7.6-16 16.6L304 192l0 48 48 0zM222.1 321.9L348.4 448.2C325 458.4 299.2 464 272 464C166 464 80 378 80 272c0-83.6 53.4-154.7 128-181.1L208 288c0 12.7 5.1 24.9 14.1 33.9zM239 34.3C122.1 50.3 32 150.7 32 272c0 132.5 107.5 240 240 240c51.8 0 99.8-16.4 139-44.3c7.7-5.5 8.2-16.5 1.5-23.1L256 288l0-238.4c0-9.2-7.8-16.6-17-15.4zM558.4 288L320 288 478.7 446.7c5.8 5.8 15.2 6.3 21.2 .7c39.3-36.7 66.2-86.5 73.9-142.3c1.3-9.2-6.1-17-15.4-17z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 576 512'%3E%3Cpath fill='black' d='M493.1 192L352 192l0-141.1C423.5 64 480 120.5 493.1 192zM352 240l175.4 0c9 0 16.6-7 16.6-16C544 100.3 443.7 0 320 0c-9 0-16 7.6-16 16.6L304 192l0 48 48 0zM222.1 321.9L348.4 448.2C325 458.4 299.2 464 272 464C166 464 80 378 80 272c0-83.6 53.4-154.7 128-181.1L208 288c0 12.7 5.1 24.9 14.1 33.9zM239 34.3C122.1 50.3 32 150.7 32 272c0 132.5 107.5 240 240 240c51.8 0 99.8-16.4 139-44.3c7.7-5.5 8.2-16.5 1.5-23.1L256 288l0-238.4c0-9.2-7.8-16.6-17-15.4zM558.4 288L320 288 478.7 446.7c5.8 5.8 15.2 6.3 21.2 .7c39.3-36.7 66.2-86.5 73.9-142.3c1.3-9.2-6.1-17-15.4-17z'/%3E%3C/svg%3E")}.fa-lightbulb-on{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 512'%3E%3Cpath fill='black' d='M69.3 4C58.3-3.3 43.4-.3 36 10.7s-4.4 25.9 6.7 33.3l48 32c11 7.4 25.9 4.4 33.3-6.7s4.4-25.9-6.7-33.3L69.3 4zM597.3 44c11-7.4 14-22.3 6.7-33.3s-22.3-14-33.3-6.7l-48 32c-11 7.4-14 22.3-6.7 33.3s22.3 14 33.3 6.7l48-32zM24 160c-13.3 0-24 10.7-24 24s10.7 24 24 24l64 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-64 0zm528 0c-13.3 0-24 10.7-24 24s10.7 24 24 24l64 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-64 0zM117.3 332c11-7.4 14-22.3 6.7-33.3s-22.3-14-33.3-6.7l-48 32c-11 7.4-14 22.3-6.7 33.3s22.3 14 33.3 6.7l48-32zm432-39.9c-11-7.4-25.9-4.4-33.3 6.7s-4.4 25.9 6.7 33.3l48 32c11 7.4 25.9 4.4 33.3-6.7s4.4-25.9-6.7-33.3l-48-32zM448 176c0 27.2-8.4 52.3-22.8 72.9c-3.7 5.3-8 11.3-12.7 17.7c0 0 0 0 0 0s0 0 0 0s0 0 0 0s0 0 0 0c-12.9 17.7-28.3 38.9-39.8 59.8c-10.4 19-15.7 38.8-18.3 57.5l48.6 0c2.2-12 5.9-23.7 11.8-34.5c9.9-18 22.2-34.9 34.5-51.8c0 0 0 0 0 0s0 0 0 0s0 0 0 0c5.2-7.1 10.4-14.2 15.4-21.4c19.8-28.5 31.4-63 31.4-100.3C496 78.8 417.2 0 320 0S144 78.8 144 176c0 37.3 11.6 71.9 31.4 100.3c5 7.2 10.2 14.3 15.4 21.4c0 0 0 0 0 0s0 0 0 0c12.3 16.8 24.6 33.7 34.5 51.8c5.9 10.8 9.6 22.5 11.8 34.5l48.6 0c-2.6-18.7-7.9-38.6-18.3-57.5c-11.5-20.9-26.9-42.1-39.8-59.8c0 0 0 0 0 0s0 0 0 0c-4.7-6.4-9-12.4-12.8-17.7C200.4 228.3 192 203.2 192 176c0-70.7 57.3-128 128-128s128 57.3 128 128zm-176 0c0-26.5 21.5-48 48-48c8.8 0 16-7.2 16-16s-7.2-16-16-16c-44.2 0-80 35.8-80 80c0 8.8 7.2 16 16 16s16-7.2 16-16zM400 432l0-16-160 0 0 16c0 44.2 35.8 80 80 80s80-35.8 80-80z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 512'%3E%3Cpath fill='black' d='M69.3 4C58.3-3.3 43.4-.3 36 10.7s-4.4 25.9 6.7 33.3l48 32c11 7.4 25.9 4.4 33.3-6.7s4.4-25.9-6.7-33.3L69.3 4zM597.3 44c11-7.4 14-22.3 6.7-33.3s-22.3-14-33.3-6.7l-48 32c-11 7.4-14 22.3-6.7 33.3s22.3 14 33.3 6.7l48-32zM24 160c-13.3 0-24 10.7-24 24s10.7 24 24 24l64 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-64 0zm528 0c-13.3 0-24 10.7-24 24s10.7 24 24 24l64 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-64 0zM117.3 332c11-7.4 14-22.3 6.7-33.3s-22.3-14-33.3-6.7l-48 32c-11 7.4-14 22.3-6.7 33.3s22.3 14 33.3 6.7l48-32zm432-39.9c-11-7.4-25.9-4.4-33.3 6.7s-4.4 25.9 6.7 33.3l48 32c11 7.4 25.9 4.4 33.3-6.7s4.4-25.9-6.7-33.3l-48-32zM448 176c0 27.2-8.4 52.3-22.8 72.9c-3.7 5.3-8 11.3-12.7 17.7c0 0 0 0 0 0s0 0 0 0s0 0 0 0s0 0 0 0c-12.9 17.7-28.3 38.9-39.8 59.8c-10.4 19-15.7 38.8-18.3 57.5l48.6 0c2.2-12 5.9-23.7 11.8-34.5c9.9-18 22.2-34.9 34.5-51.8c0 0 0 0 0 0s0 0 0 0s0 0 0 0c5.2-7.1 10.4-14.2 15.4-21.4c19.8-28.5 31.4-63 31.4-100.3C496 78.8 417.2 0 320 0S144 78.8 144 176c0 37.3 11.6 71.9 31.4 100.3c5 7.2 10.2 14.3 15.4 21.4c0 0 0 0 0 0s0 0 0 0c12.3 16.8 24.6 33.7 34.5 51.8c5.9 10.8 9.6 22.5 11.8 34.5l48.6 0c-2.6-18.7-7.9-38.6-18.3-57.5c-11.5-20.9-26.9-42.1-39.8-59.8c0 0 0 0 0 0s0 0 0 0c-4.7-6.4-9-12.4-12.8-17.7C200.4 228.3 192 203.2 192 176c0-70.7 57.3-128 128-128s128 57.3 128 128zm-176 0c0-26.5 21.5-48 48-48c8.8 0 16-7.2 16-16s-7.2-16-16-16c-44.2 0-80 35.8-80 80c0 8.8 7.2 16 16 16s16-7.2 16-16zM400 432l0-16-160 0 0 16c0 44.2 35.8 80 80 80s80-35.8 80-80z'/%3E%3C/svg%3E")}.fa-chart-line-up{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='black' d='M48 56c0-13.3-10.7-24-24-24S0 42.7 0 56L0 408c0 39.8 32.2 72 72 72l416 0c13.3 0 24-10.7 24-24s-10.7-24-24-24L72 432c-13.3 0-24-10.7-24-24L48 56zm272 96c0 13.3 10.7 24 24 24l54.1 0L304 270.1l-79-79c-9.4-9.4-24.6-9.4-33.9 0l-80 80c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l63-63 79 79c9.4 9.4 24.6 9.4 33.9 0l111-111 0 54.1c0 13.3 10.7 24 24 24s24-10.7 24-24l0-112c0-13.3-10.7-24-24-24l-112 0c-13.3 0-24 10.7-24 24z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='black' d='M48 56c0-13.3-10.7-24-24-24S0 42.7 0 56L0 408c0 39.8 32.2 72 72 72l416 0c13.3 0 24-10.7 24-24s-10.7-24-24-24L72 432c-13.3 0-24-10.7-24-24L48 56zm272 96c0 13.3 10.7 24 24 24l54.1 0L304 270.1l-79-79c-9.4-9.4-24.6-9.4-33.9 0l-80 80c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l63-63 79 79c9.4 9.4 24.6 9.4 33.9 0l111-111 0 54.1c0 13.3 10.7 24 24 24s24-10.7 24-24l0-112c0-13.3-10.7-24-24-24l-112 0c-13.3 0-24 10.7-24 24z'/%3E%3C/svg%3E")}.fa-bullseye{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='black' d='M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zM256 368a112 112 0 1 0 0-224 112 112 0 1 0 0 224zm0-272a160 160 0 1 1 0 320 160 160 0 1 1 0-320zm0 176a16 16 0 1 0 0-32 16 16 0 1 0 0 32zm0-80a64 64 0 1 1 0 128 64 64 0 1 1 0-128z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='black' d='M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zM256 368a112 112 0 1 0 0-224 112 112 0 1 0 0 224zm0-272a160 160 0 1 1 0 320 160 160 0 1 1 0-320zm0 176a16 16 0 1 0 0-32 16 16 0 1 0 0 32zm0-80a64 64 0 1 1 0 128 64 64 0 1 1 0-128z'/%3E%3C/svg%3E")}.fa-map-location-dot{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 576 512'%3E%3Cpath fill='black' d='M408 120c0 8.6-1.8 18.3-5 28.6c-5.7 18.4-15.6 38.8-27.4 59.2l-.1 .2c-3.1 5.4-6.3 10.7-9.6 16c-4.4 7-8.9 14-13.5 20.8l-.4 .6c-18.1 26.9-36.7 51.1-49.2 66.6c-7.7 9.6-22 9.6-29.6 0c-12.4-15.5-31.1-39.7-49.2-66.6c-18.4-27.3-36.3-57.5-46.7-84.4c-.8-2.1-1.6-4.2-2.3-6.3c-4.4-12.6-7-24.4-7-34.6c0-4.7 .3-9.3 .8-13.8C175.6 46.4 226.4 0 288 0c66.3 0 120 53.7 120 120zM352 300.6c13.5-18.2 28.8-39.9 42.7-62.4c1.8-2.9 3.6-5.8 5.3-8.8l0 224.3 128-46.5 0-252.9L419.3 193.8c2.2-4.7 4.4-9.3 6.3-14c5.9-14 11-29.2 13.2-44.2l105-38.2c7.4-2.7 15.6-1.6 22 2.9s10.2 11.8 10.2 19.7l0 304c0 10.1-6.3 19.1-15.8 22.6l-176 64c-5.3 1.9-11.1 1.9-16.4 0L200 449.5l-167.8 61c-7.4 2.7-15.6 1.6-22-2.9S0 495.8 0 488L0 184c0-10.1 6.3-19.1 15.8-22.6L136 117.7c0 .8 0 1.5 0 2.3c0 15.1 3.7 30.7 8.9 45.6L48 200.8l0 252.9 128-46.5 0-177.7c1.8 3 3.5 5.9 5.3 8.8c13.9 22.5 29.1 44.2 42.7 62.4l0 106.6 128 46.5 0-153.1zM288 152a40 40 0 1 0 0-80 40 40 0 1 0 0 80z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 576 512'%3E%3Cpath fill='black' d='M408 120c0 8.6-1.8 18.3-5 28.6c-5.7 18.4-15.6 38.8-27.4 59.2l-.1 .2c-3.1 5.4-6.3 10.7-9.6 16c-4.4 7-8.9 14-13.5 20.8l-.4 .6c-18.1 26.9-36.7 51.1-49.2 66.6c-7.7 9.6-22 9.6-29.6 0c-12.4-15.5-31.1-39.7-49.2-66.6c-18.4-27.3-36.3-57.5-46.7-84.4c-.8-2.1-1.6-4.2-2.3-6.3c-4.4-12.6-7-24.4-7-34.6c0-4.7 .3-9.3 .8-13.8C175.6 46.4 226.4 0 288 0c66.3 0 120 53.7 120 120zM352 300.6c13.5-18.2 28.8-39.9 42.7-62.4c1.8-2.9 3.6-5.8 5.3-8.8l0 224.3 128-46.5 0-252.9L419.3 193.8c2.2-4.7 4.4-9.3 6.3-14c5.9-14 11-29.2 13.2-44.2l105-38.2c7.4-2.7 15.6-1.6 22 2.9s10.2 11.8 10.2 19.7l0 304c0 10.1-6.3 19.1-15.8 22.6l-176 64c-5.3 1.9-11.1 1.9-16.4 0L200 449.5l-167.8 61c-7.4 2.7-15.6 1.6-22-2.9S0 495.8 0 488L0 184c0-10.1 6.3-19.1 15.8-22.6L136 117.7c0 .8 0 1.5 0 2.3c0 15.1 3.7 30.7 8.9 45.6L48 200.8l0 252.9 128-46.5 0-177.7c1.8 3 3.5 5.9 5.3 8.8c13.9 22.5 29.1 44.2 42.7 62.4l0 106.6 128 46.5 0-153.1zM288 152a40 40 0 1 0 0-80 40 40 0 1 0 0 80z'/%3E%3C/svg%3E")}.fa-users-class{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 512'%3E%3Cpath fill='black' d='M192 96a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm-13.7 80l29.8 0 0 128-32 0 0-127.9c.7 0 1.5-.1 2.3-.1zM176 488l0-136 32 0 0 136c0 13.3 10.7 24 24 24s24-10.7 24-24l0-312 136 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-24 0 0-80 224 0 0 224-224 0 0-48-48 0 0 48c0 26.5 21.5 48 48 48l224 0c26.5 0 48-21.5 48-48l0-224c0-26.5-21.5-48-48-48L368 0c-26.5 0-48 21.5-48 48l0 80-76.9 0-64.8 0c-31.7 0-61 17.1-76.6 44.7L43.1 276.2c-6.5 11.5-2.5 26.2 9.1 32.7s26.2 2.5 32.7-9.1L128 223.6 128 488c0 13.3 10.7 24 24 24s24-10.7 24-24z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 512'%3E%3Cpath fill='black' d='M192 96a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm-13.7 80l29.8 0 0 128-32 0 0-127.9c.7 0 1.5-.1 2.3-.1zM176 488l0-136 32 0 0 136c0 13.3 10.7 24 24 24s24-10.7 24-24l0-312 136 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-24 0 0-80 224 0 0 224-224 0 0-48-48 0 0 48c0 26.5 21.5 48 48 48l224 0c26.5 0 48-21.5 48-48l0-224c0-26.5-21.5-48-48-48L368 0c-26.5 0-48 21.5-48 48l0 80-76.9 0-64.8 0c-31.7 0-61 17.1-76.6 44.7L43.1 276.2c-6.5 11.5-2.5 26.2 9.1 32.7s26.2 2.5 32.7-9.1L128 223.6 128 488c0 13.3 10.7 24 24 24s24-10.7 24-24z'/%3E%3C/svg%3E")}.fa-receipt{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'%3E%3Cpath fill='black' d='M39.6 5.8C32.5-.3 22.5-1.7 14 2.2S0 14.6 0 24L0 488c0 9.4 5.5 17.9 14 21.8s18.5 2.5 25.6-3.6L80 471.6l40.4 34.6c9 7.7 22.3 7.7 31.2 0L192 471.6l40.4 34.6c9 7.7 22.3 7.7 31.2 0L304 471.6l40.4 34.6c7.1 6.1 17.1 7.5 25.6 3.6s14-12.4 14-21.8l0-464c0-9.4-5.5-17.9-14-21.8s-18.5-2.5-25.6 3.6L304 40.4 263.6 5.8c-9-7.7-22.3-7.7-31.2 0L192 40.4 151.6 5.8c-9-7.7-22.3-7.7-31.2 0L80 40.4 39.6 5.8zm8.4 430L48 76.2l16.4 14c9 7.7 22.3 7.7 31.2 0L136 55.6l40.4 34.6c9 7.7 22.3 7.7 31.2 0L248 55.6l40.4 34.6c9 7.7 22.3 7.7 31.2 0l16.4-14 0 359.6-16.4-14c-9-7.7-22.3-7.7-31.2 0L248 456.4l-40.4-34.6c-9-7.7-22.3-7.7-31.2 0L136 456.4 95.6 421.8c-9-7.7-22.3-7.7-31.2 0L48 435.8zM120 144c-13.3 0-24 10.7-24 24s10.7 24 24 24l144 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-144 0zm0 176c-13.3 0-24 10.7-24 24s10.7 24 24 24l144 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-144 0zM96 256c0 13.3 10.7 24 24 24l144 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-144 0c-13.3 0-24 10.7-24 24z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'%3E%3Cpath fill='black' d='M39.6 5.8C32.5-.3 22.5-1.7 14 2.2S0 14.6 0 24L0 488c0 9.4 5.5 17.9 14 21.8s18.5 2.5 25.6-3.6L80 471.6l40.4 34.6c9 7.7 22.3 7.7 31.2 0L192 471.6l40.4 34.6c9 7.7 22.3 7.7 31.2 0L304 471.6l40.4 34.6c7.1 6.1 17.1 7.5 25.6 3.6s14-12.4 14-21.8l0-464c0-9.4-5.5-17.9-14-21.8s-18.5-2.5-25.6 3.6L304 40.4 263.6 5.8c-9-7.7-22.3-7.7-31.2 0L192 40.4 151.6 5.8c-9-7.7-22.3-7.7-31.2 0L80 40.4 39.6 5.8zm8.4 430L48 76.2l16.4 14c9 7.7 22.3 7.7 31.2 0L136 55.6l40.4 34.6c9 7.7 22.3 7.7 31.2 0L248 55.6l40.4 34.6c9 7.7 22.3 7.7 31.2 0l16.4-14 0 359.6-16.4-14c-9-7.7-22.3-7.7-31.2 0L248 456.4l-40.4-34.6c-9-7.7-22.3-7.7-31.2 0L136 456.4 95.6 421.8c-9-7.7-22.3-7.7-31.2 0L48 435.8zM120 144c-13.3 0-24 10.7-24 24s10.7 24 24 24l144 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-144 0zm0 176c-13.3 0-24 10.7-24 24s10.7 24 24 24l144 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-144 0zM96 256c0 13.3 10.7 24 24 24l144 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-144 0c-13.3 0-24 10.7-24 24z'/%3E%3C/svg%3E")}.fa-money-bill-wave{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 576 512'%3E%3Cpath fill='black' d='M265.7 407.9c4.5-1.1 9-2.3 13.5-3.4c0 0 0 0 0 0c55.9-14.3 119.4-30.6 185.3-28.7c4.1-31.4 30.9-55.7 63.5-55.7l0-176c-35.3 0-63.9-28.6-64-63.9c-47-1.7-96.8 9.5-153.7 24c-4.5 1.1-9 2.3-13.5 3.5c0 0 0 0 0 0c-55.9 14.3-119.4 30.6-185.3 28.7C107.4 167.7 80.5 192 48 192l0 176c35.3 0 63.9 28.6 64 63.9c47 1.7 96.8-9.5 153.7-24zM0 421.5L0 113C0 88.8 25.4 72.7 48.4 79C128.2 101 208.1 80.6 288 60.3c86.9-22.1 173.8-44.3 260.7-12C565.8 54.6 576 72 576 90.5L576 399c0 24.3-25.4 40.3-48.3 34C447.8 411 367.9 431.4 288 451.7c-86.9 22.1-173.8 44.3-260.7 12C10.2 457.4 0 440 0 421.5zM288 352c-44.2 0-80-43-80-96s35.8-96 80-96s80 43 80 96s-35.8 96-80 96z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 576 512'%3E%3Cpath fill='black' d='M265.7 407.9c4.5-1.1 9-2.3 13.5-3.4c0 0 0 0 0 0c55.9-14.3 119.4-30.6 185.3-28.7c4.1-31.4 30.9-55.7 63.5-55.7l0-176c-35.3 0-63.9-28.6-64-63.9c-47-1.7-96.8 9.5-153.7 24c-4.5 1.1-9 2.3-13.5 3.5c0 0 0 0 0 0c-55.9 14.3-119.4 30.6-185.3 28.7C107.4 167.7 80.5 192 48 192l0 176c35.3 0 63.9 28.6 64 63.9c47 1.7 96.8-9.5 153.7-24zM0 421.5L0 113C0 88.8 25.4 72.7 48.4 79C128.2 101 208.1 80.6 288 60.3c86.9-22.1 173.8-44.3 260.7-12C565.8 54.6 576 72 576 90.5L576 399c0 24.3-25.4 40.3-48.3 34C447.8 411 367.9 431.4 288 451.7c-86.9 22.1-173.8 44.3-260.7 12C10.2 457.4 0 440 0 421.5zM288 352c-44.2 0-80-43-80-96s35.8-96 80-96s80 43 80 96s-35.8 96-80 96z'/%3E%3C/svg%3E")}.fa-badge-dollar{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='black' d='M200.3 81.5C210.9 61.5 231.9 48 256 48s45.1 13.5 55.7 33.5C317.1 91.7 329 96.6 340 93.2c21.6-6.6 46.1-1.4 63.1 15.7s22.3 41.5 15.7 63.1c-3.4 11 1.5 22.9 11.7 28.2c20 10.6 33.5 31.6 33.5 55.7s-13.5 45.1-33.5 55.7c-10.2 5.4-15.1 17.2-11.7 28.2c6.6 21.6 1.4 46.1-15.7 63.1s-41.5 22.3-63.1 15.7c-11-3.4-22.9 1.5-28.2 11.7c-10.6 20-31.6 33.5-55.7 33.5s-45.1-13.5-55.7-33.5c-5.4-10.2-17.2-15.1-28.2-11.7c-21.6 6.6-46.1 1.4-63.1-15.7S86.6 361.6 93.2 340c3.4-11-1.5-22.9-11.7-28.2C61.5 301.1 48 280.1 48 256s13.5-45.1 33.5-55.7C91.7 194.9 96.6 183 93.2 172c-6.6-21.6-1.4-46.1 15.7-63.1S150.4 86.6 172 93.2c11 3.4 22.9-1.5 28.2-11.7zM256 0c-35.9 0-67.8 17-88.1 43.4c-33-4.3-67.6 6.2-93 31.6s-35.9 60-31.6 93C17 188.2 0 220.1 0 256s17 67.8 43.4 88.1c-4.3 33 6.2 67.6 31.6 93s60 35.9 93 31.6C188.2 495 220.1 512 256 512s67.8-17 88.1-43.4c33 4.3 67.6-6.2 93-31.6s35.9-60 31.6-93C495 323.8 512 291.9 512 256s-17-67.8-43.4-88.1c4.3-33-6.2-67.6-31.6-93s-60-35.9-93-31.6C323.8 17 291.9 0 256 0zm20.9 140.4c0-11-9-20-20-20s-20 9-20 20l0 17.4c-8.8 1.8-17.7 4.8-25.7 9.6c-15 8.9-27.7 24.4-27.6 46.9c.1 21.5 12.6 35.1 26.3 43.4c11.9 7.2 27 11.7 39.1 15.4l1.9 .6c13.9 4.2 24.4 7.6 31.7 12.2c6.1 3.8 7.5 6.8 7.6 11c.1 6.5-2.5 10.4-7.6 13.6c-6 3.7-15.2 5.9-25.1 5.6c-12.7-.4-24.6-4.4-39.7-9.6c0 0 0 0 0 0s0 0 0 0s0 0 0 0s0 0 0 0c-2.6-.9-5.2-1.8-8-2.7c-10.5-3.5-21.8 2.2-25.3 12.6s2.2 21.8 12.6 25.3c2.2 .7 4.5 1.5 6.8 2.3c9.7 3.3 20.9 7.2 32.8 9.6l0 18c0 11 9 20 20 20s20-9 20-20l0-17.1c9.3-1.7 18.6-4.9 26.8-10.1c15.3-9.5 26.8-25.7 26.5-48.1c-.3-21.6-12.4-35.6-26.3-44.3c-12.5-7.9-28.3-12.6-40.8-16.4l-.6-.2c-14.1-4.3-24.6-7.5-31.9-11.9c-6.2-3.7-7-6.3-7-9.3c0-5.1 2.1-8.8 7.9-12.3c6.5-3.8 16-6 25-5.8c10.9 .2 22.9 2.6 35.2 5.8c10.7 2.8 21.6-3.5 24.5-14.2s-3.5-21.6-14.2-24.5c-7.8-2.1-16.3-4.1-25.1-5.4l0-17.3z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='black' d='M200.3 81.5C210.9 61.5 231.9 48 256 48s45.1 13.5 55.7 33.5C317.1 91.7 329 96.6 340 93.2c21.6-6.6 46.1-1.4 63.1 15.7s22.3 41.5 15.7 63.1c-3.4 11 1.5 22.9 11.7 28.2c20 10.6 33.5 31.6 33.5 55.7s-13.5 45.1-33.5 55.7c-10.2 5.4-15.1 17.2-11.7 28.2c6.6 21.6 1.4 46.1-15.7 63.1s-41.5 22.3-63.1 15.7c-11-3.4-22.9 1.5-28.2 11.7c-10.6 20-31.6 33.5-55.7 33.5s-45.1-13.5-55.7-33.5c-5.4-10.2-17.2-15.1-28.2-11.7c-21.6 6.6-46.1 1.4-63.1-15.7S86.6 361.6 93.2 340c3.4-11-1.5-22.9-11.7-28.2C61.5 301.1 48 280.1 48 256s13.5-45.1 33.5-55.7C91.7 194.9 96.6 183 93.2 172c-6.6-21.6-1.4-46.1 15.7-63.1S150.4 86.6 172 93.2c11 3.4 22.9-1.5 28.2-11.7zM256 0c-35.9 0-67.8 17-88.1 43.4c-33-4.3-67.6 6.2-93 31.6s-35.9 60-31.6 93C17 188.2 0 220.1 0 256s17 67.8 43.4 88.1c-4.3 33 6.2 67.6 31.6 93s60 35.9 93 31.6C188.2 495 220.1 512 256 512s67.8-17 88.1-43.4c33 4.3 67.6-6.2 93-31.6s35.9-60 31.6-93C495 323.8 512 291.9 512 256s-17-67.8-43.4-88.1c4.3-33-6.2-67.6-31.6-93s-60-35.9-93-31.6C323.8 17 291.9 0 256 0zm20.9 140.4c0-11-9-20-20-20s-20 9-20 20l0 17.4c-8.8 1.8-17.7 4.8-25.7 9.6c-15 8.9-27.7 24.4-27.6 46.9c.1 21.5 12.6 35.1 26.3 43.4c11.9 7.2 27 11.7 39.1 15.4l1.9 .6c13.9 4.2 24.4 7.6 31.7 12.2c6.1 3.8 7.5 6.8 7.6 11c.1 6.5-2.5 10.4-7.6 13.6c-6 3.7-15.2 5.9-25.1 5.6c-12.7-.4-24.6-4.4-39.7-9.6c0 0 0 0 0 0s0 0 0 0s0 0 0 0s0 0 0 0c-2.6-.9-5.2-1.8-8-2.7c-10.5-3.5-21.8 2.2-25.3 12.6s2.2 21.8 12.6 25.3c2.2 .7 4.5 1.5 6.8 2.3c9.7 3.3 20.9 7.2 32.8 9.6l0 18c0 11 9 20 20 20s20-9 20-20l0-17.1c9.3-1.7 18.6-4.9 26.8-10.1c15.3-9.5 26.8-25.7 26.5-48.1c-.3-21.6-12.4-35.6-26.3-44.3c-12.5-7.9-28.3-12.6-40.8-16.4l-.6-.2c-14.1-4.3-24.6-7.5-31.9-11.9c-6.2-3.7-7-6.3-7-9.3c0-5.1 2.1-8.8 7.9-12.3c6.5-3.8 16-6 25-5.8c10.9 .2 22.9 2.6 35.2 5.8c10.7 2.8 21.6-3.5 24.5-14.2s-3.5-21.6-14.2-24.5c-7.8-2.1-16.3-4.1-25.1-5.4l0-17.3z'/%3E%3C/svg%3E")}.fa-person-running{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 448 512'%3E%3Cpath fill='black' d='M224 48a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zm-85.3 60.6c14-3.5 28.7-3.5 42.7 0l95 23.7c19 4.8 34.2 19.1 39.9 37.9L336 234.4c1 3.4 4.1 5.6 7.6 5.6l48.4 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-48.4 0c-24.6 0-46.3-16-53.5-39.5l-5.6-18.2-28.1 84.4 32.1 18c16.5 9.3 24.2 28.8 18.6 46.8L270.9 495.2c-4 12.7-17.4 19.7-30.1 15.8s-19.7-17.4-15.7-30.1l34.2-109.5-88-49.5c-23.4-13.2-34.2-41.1-25.7-66.5l32.7-98-8.6-2.1c-6.4-1.6-13-1.6-19.4 0l-1.8 .5c-6 1.5-11.6 4.4-16.3 8.4L87.6 202.2c-10.1 8.6-25.2 7.5-33.8-2.6s-7.5-25.2 2.6-33.8l44.5-38.2c10.4-8.9 22.7-15.2 35.9-18.6l1.8-.5zm75.1 182.1l38.3-115L225 169 191.1 270.5c-1.2 3.6 .3 7.6 3.7 9.5l19 10.7zM103.4 368l19.1-50.9c7.7 13.3 18.9 24.7 33 32.6l4.9 2.8-14.1 37.6c-5.9 15.6-20.8 25.9-37.4 25.9L24 416c-13.3 0-24-10.7-24-24s10.7-24 24-24l79.4 0z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 448 512'%3E%3Cpath fill='black' d='M224 48a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zm-85.3 60.6c14-3.5 28.7-3.5 42.7 0l95 23.7c19 4.8 34.2 19.1 39.9 37.9L336 234.4c1 3.4 4.1 5.6 7.6 5.6l48.4 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-48.4 0c-24.6 0-46.3-16-53.5-39.5l-5.6-18.2-28.1 84.4 32.1 18c16.5 9.3 24.2 28.8 18.6 46.8L270.9 495.2c-4 12.7-17.4 19.7-30.1 15.8s-19.7-17.4-15.7-30.1l34.2-109.5-88-49.5c-23.4-13.2-34.2-41.1-25.7-66.5l32.7-98-8.6-2.1c-6.4-1.6-13-1.6-19.4 0l-1.8 .5c-6 1.5-11.6 4.4-16.3 8.4L87.6 202.2c-10.1 8.6-25.2 7.5-33.8-2.6s-7.5-25.2 2.6-33.8l44.5-38.2c10.4-8.9 22.7-15.2 35.9-18.6l1.8-.5zm75.1 182.1l38.3-115L225 169 191.1 270.5c-1.2 3.6 .3 7.6 3.7 9.5l19 10.7zM103.4 368l19.1-50.9c7.7 13.3 18.9 24.7 33 32.6l4.9 2.8-14.1 37.6c-5.9 15.6-20.8 25.9-37.4 25.9L24 416c-13.3 0-24-10.7-24-24s10.7-24 24-24l79.4 0z'/%3E%3C/svg%3E")}.fa-arrow-right{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 448 512'%3E%3Cpath fill='black' d='M440.6 273.4c4.7-4.5 7.4-10.8 7.4-17.4s-2.7-12.8-7.4-17.4l-176-168c-9.6-9.2-24.8-8.8-33.9 .8s-8.8 24.8 .8 33.9L364.1 232 24 232c-13.3 0-24 10.7-24 24s10.7 24 24 24l340.1 0L231.4 406.6c-9.6 9.2-9.9 24.3-.8 33.9s24.3 9.9 33.9 .8l176-168z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 448 512'%3E%3Cpath fill='black' d='M440.6 273.4c4.7-4.5 7.4-10.8 7.4-17.4s-2.7-12.8-7.4-17.4l-176-168c-9.6-9.2-24.8-8.8-33.9 .8s-8.8 24.8 .8 33.9L364.1 232 24 232c-13.3 0-24 10.7-24 24s10.7 24 24 24l340.1 0L231.4 406.6c-9.6 9.2-9.9 24.3-.8 33.9s24.3 9.9 33.9 .8l176-168z'/%3E%3C/svg%3E")}.fa-arrow-left{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 448 512'%3E%3Cpath fill='black' d='M7.4 273.4C2.7 268.8 0 262.6 0 256s2.7-12.8 7.4-17.4l176-168c9.6-9.2 24.8-8.8 33.9 .8s8.8 24.8-.8 33.9L83.9 232 424 232c13.3 0 24 10.7 24 24s-10.7 24-24 24L83.9 280 216.6 406.6c9.6 9.2 9.9 24.3 .8 33.9s-24.3 9.9-33.9 .8l-176-168z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 448 512'%3E%3Cpath fill='black' d='M7.4 273.4C2.7 268.8 0 262.6 0 256s2.7-12.8 7.4-17.4l176-168c9.6-9.2 24.8-8.8 33.9 .8s8.8 24.8-.8 33.9L83.9 232 424 232c13.3 0 24 10.7 24 24s-10.7 24-24 24L83.9 280 216.6 406.6c9.6 9.2 9.9 24.3 .8 33.9s-24.3 9.9-33.9 .8l-176-168z'/%3E%3C/svg%3E")}.mity-icon{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAEqWlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4KPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iWE1QIENvcmUgNS41LjAiPgogPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4KICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIgogICAgeG1sbnM6dGlmZj0iaHR0cDovL25zLmFkb2JlLmNvbS90aWZmLzEuMC8iCiAgICB4bWxuczpleGlmPSJodHRwOi8vbnMuYWRvYmUuY29tL2V4aWYvMS4wLyIKICAgIHhtbG5zOnBob3Rvc2hvcD0iaHR0cDovL25zLmFkb2JlLmNvbS9waG90b3Nob3AvMS4wLyIKICAgIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyIKICAgIHhtbG5zOnhtcE1NPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIgogICAgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIKICAgdGlmZjpJbWFnZUxlbmd0aD0iMjQiCiAgIHRpZmY6SW1hZ2VXaWR0aD0iMjQiCiAgIHRpZmY6UmVzb2x1dGlvblVuaXQ9IjIiCiAgIHRpZmY6WFJlc29sdXRpb249IjcyLzEiCiAgIHRpZmY6WVJlc29sdXRpb249IjcyLzEiCiAgIGV4aWY6UGl4ZWxYRGltZW5zaW9uPSIyNCIKICAgZXhpZjpQaXhlbFlEaW1lbnNpb249IjI0IgogICBleGlmOkNvbG9yU3BhY2U9IjEiCiAgIHBob3Rvc2hvcDpDb2xvck1vZGU9IjMiCiAgIHBob3Rvc2hvcDpJQ0NQcm9maWxlPSJzUkdCIElFQzYxOTY2LTIuMSIKICAgeG1wOk1vZGlmeURhdGU9IjIwMjYtMDQtMDdUMTc6MTk6NDMrMDc6MDAiCiAgIHhtcDpNZXRhZGF0YURhdGU9IjIwMjYtMDQtMDdUMTc6MTk6NDMrMDc6MDAiPgogICA8eG1wTU06SGlzdG9yeT4KICAgIDxyZGY6U2VxPgogICAgIDxyZGY6bGkKICAgICAgc3RFdnQ6YWN0aW9uPSJwcm9kdWNlZCIKICAgICAgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWZmaW5pdHkgMy4xLjAiCiAgICAgIHN0RXZ0OndoZW49IjIwMjYtMDQtMDdUMTc6MTk6NDMrMDc6MDAiLz4KICAgIDwvcmRmOlNlcT4KICAgPC94bXBNTTpIaXN0b3J5PgogIDwvcmRmOkRlc2NyaXB0aW9uPgogPC9yZGY6UkRGPgo8L3g6eG1wbWV0YT4KPD94cGFja2V0IGVuZD0iciI/PgG9S8sAAAAJcEhZcwAACxMAAAsTAQCanBgAAAUQSURBVEjHxVVbSGNXFN2598bEJI7vRzWOgi9E7QxUpRa1Wjpg8cMq2C8F52MUP/pXalsKtT9KEQQpSH8GZKjFGcEfxx8HHB0qVj9KLfjA0TpO4jMao4l53iRd+2iCMy1loIUeOZ7ce8/ea+219z5HQ//BCIfDmoODg3yPx3PH7/dXnJ+fv6isrPyWv8n/1rnFYol1Op39Xq/3vsvl+thqtd4OhUI1KSkpgwsLC37NmzjZ2tqSDQZDCaYZbI3BYJDgxB5QVTmoqt85HI7b2EOHh4ckSRKZzWYCYF1zc/OcMj8/n+Tz+e7B6B2NRhOCv+dE0oROp13Oy8uTMRr1ev0XcJgL57HYo2AwgB/fKCBJ8evr63R6ekqyLJGiaFkyrIqRySkmk+lOTEzMN263m42JjbB+jXe/yIrswt73d3Z2tMxwY2ODnE4X6fQxlHMzx1BYWEjm7Gyqrq6mtbU1slit7FhMED4VAHB0Bu2C29vbFAEAc8rKynrX7fbQ1NRjmp15Skc2G8KXBUvex1IkJCRQUVERNTY2UklJCSUmJZHVYiGtVqseHR1tCIC4uLhDJMnPxqgAEV5ScjJWoh8fPADAFPkDAUKkcEykqioF8Oz1eAhRi7m7u0udnZ2Un59PIEzO8/PHbW1tJwwgobQ2ofGB0WggnS6G3r51i4wGAz189JCmnzwRDjipTpeL7HY7HR8f0zGiOXU4OA+UAjL7e/s0MjKCPDgoGc/x8fHTkQKRCgoKnAh3GC8pMyuLMtLTaXNzk2afzhCST1ow4qjcFxcC4OTkRDhnmRA57e3vk8froaWlJZqYmCAZ0t24Ed8RBeB/Npvth8TExNmM9IxQIKDS8u/LcGRnLUXImZmZVFxcLCRExEKigYEB6urqotXVVUFoH0Dz8z+zLyRZrlxZWXkvClBfXx9E5r/S63VWv99HOy92hMasN4/y8nLq7u4WgJEcDA0N0ejoKJ2dnYmJuuemIzSasImNNXwgkhwNRZLOoWmQWbLGHhjodDpRLZOTkzQ+Pk44AkSVMRA74sbiPPAezhN/R9NRmB0rclFfX59GuXaeKGCmZYYhaM5Goifwx4y5kVpbPxGVxLIloSSHh4cFcx6cE56crzBAYROHPdooADYGwVhlRpxwbhZmynR4ZcBnz+bEewYLXToRJK4UgCyxIuqrTnZDOvU6gB2bjsEil5PKhhFjBsA5JCQQEYZC4j2DRdhzVOZsM2WjsxkMe/7o6ekJRQHAygaDLXwsR+kSGlAkmsuUHTG7CGsGEVJgRrqao66vqxd2gOQSn4tWEY+mpqYAGD5CksNpaenifAlcVQwPZhir1wsJePJzZBqNRiorK6OGhgZBApW4PTg4OPOX+6ClpWUbSx023czIeEvU/S6qxYeVDcNXcjBjniwdR8bnEBeAyWQknApuNRi8d7ejY/2VCK4AkArvXYRnRcVSbW0NfYSDDEavaB9xznLU1NbCeSuqKpHfowDDP6Hro0eF8vrlAidbYPoZLpLv8TuV85Gbk0Nrq2v00vKSLnBkcPJTU1OptLSUUtPSIpKFMBfQG/11dXXeiL+/vdFwpihen+9DyNGLHFSogYB0yT4cNbnsEwXR6fjY9iAP9wHcX1VVtXfd1z9emWNjY0Y4/hTyfAnZdPit8AUvJALjOJNJRfk+B5HPFxcXp3t7e0Ov+3ijOxlnTjK4VyC9+ZKsiZOQaBwNJ2D8Gwrh1/b2dpX+r/EnPuq4QYkY+/0AAAAASUVORK5CYII=)}.slide-enter{transition:transform .3s ease-out}.slide-enter-from{transform:translate(100%)}.slide-enter-to{transform:translate(0)}.slide-leave{transition:transform .2s ease-in}.slide-leave-from{transform:translate(0)}.slide-leave-to{transform:translate(100%)}.more-drawer{background:#fff;border-radius:1rem 1rem 0 0;width:100%;max-height:calc(100vh - 60px);bottom:0;left:0;right:0;overflow:hidden}@media (width>=640px){.more-drawer{background:var(--color-gray-10);border-radius:0;width:375px;max-height:100vh;inset:0 0 0 auto}}.sheet-enter{transition:transform .35s cubic-bezier(.32,.72,0,1)}.sheet-enter-from{transform:translateY(100%)}.sheet-enter-to{transform:translateY(0)}.sheet-leave{transition:transform .25s ease-in}.sheet-leave-from{transform:translateY(0)}.sheet-leave-to{transform:translateY(100%)}@media (width>=640px){.sheet-enter-from{transform:translate(100%)}.sheet-enter-to,.sheet-leave-from{transform:translate(0)}.sheet-leave-to{transform:translate(100%)}}.fade-enter{transition:opacity .2s ease-out}.fade-enter-from{opacity:0}.fade-enter-to{opacity:1}.fade-leave{transition:opacity .15s ease-in}.fade-leave-from{opacity:1}.fade-leave-to{opacity:0}.icon-stroke{stroke:currentColor;fill:none;stroke-width:1.5px;stroke-linecap:round;stroke-linejoin:round}.icon-fill{fill:currentColor;stroke:none}.embla{--slide-height:14rem;--slide-spacing:1rem;--slide-size:93%;max-width:100%}.embla__viewport{overflow:hidden}.embla__container{touch-action:pan-y pinch-zoom;margin-left:calc(var(--slide-spacing) * -1);display:flex}.embla__slide{flex:0 0 var(--slide-size);min-width:0;padding-left:var(--slide-spacing)}.embla__slide__number{border:1px solid var(--color-gray-6);height:var(--slide-height);-webkit-user-select:none;user-select:none;color:var(--color-gray-1);border-radius:1rem;justify-content:center;align-items:center;font-size:4rem;font-weight:600;display:flex}.tag-pill{background:var(--color-gray-9);color:var(--color-gray-5);border-radius:9999px;align-items:center;gap:2px;padding:4px 6px;font-size:.625rem;font-weight:600;display:inline-flex}.tag-pill-red .fa-flag{color:var(--color-decent-red)}.tag-pill-yellow .fa-flag{color:var(--color-decent-yellow)}.tag-pill-gray .fa-flag{color:var(--color-gray-6)}.collapsible-card>summary{list-style:none}.collapsible-card>summary::-webkit-details-marker{display:none}.collapsible-card .collapsible-toggle .fa-minus,.collapsible-card[open] .collapsible-toggle .fa-plus{display:none}.collapsible-card[open] .collapsible-toggle .fa-minus{display:inline-block}.markdown-body{font-size:.8125rem;line-height:1.5}.markdown-body>:first-child{margin-top:0}.markdown-body>:last-child{margin-bottom:0}.markdown-body h1,.markdown-body h2,.markdown-body h3{margin:.75em 0 .25em;font-weight:600;line-height:1.3}.markdown-body h1{font-size:1rem}.markdown-body h2{font-size:.875rem}.markdown-body h3{font-size:.8125rem}.markdown-body p{margin:0 0 .5em}.markdown-body strong{font-weight:600}.markdown-body em{font-style:italic}.markdown-body ul,.markdown-body ol{margin:0 0 .5em 1.25em;padding:0}.markdown-body li{margin-bottom:.125em}.markdown-body table{scrollbar-width:thin;border-collapse:collapse;min-width:100%;margin:.5em 0;font-size:.75rem;display:block;overflow-x:auto}.markdown-body th{text-align:left;border-bottom:1px solid var(--color-gray-8);padding:4px 8px;font-weight:600}.markdown-body td{border-bottom:1px solid var(--color-gray-9);padding:4px 8px}.markdown-body code{background:var(--color-gray-9);border-radius:3px;padding:1px 4px;font-family:monospace;font-size:.75rem}.markdown-body blockquote{border-left:2px solid var(--color-gray-6);color:var(--color-gray-5);margin:.5em 0;padding-left:.75em}.radial-corner{z-index:0;pointer-events:none;display:block;position:absolute;top:0;right:0}.radial-corner:after{content:"";background-image:url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='200' cy='0' r='80' stroke='%23E0E0E0' fill='none' stroke-width='1.5'/%3E%3Ccircle cx='200' cy='0' r='110' stroke='%23E0E0E0' fill='none' stroke-width='1.5'/%3E%3Ccircle cx='200' cy='0' r='140' stroke='%23E0E0E0' fill='none' stroke-width='1.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-size:contain;width:200px;height:200px;display:block}@property --tw-border-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-leading{syntax:"*";inherits:false}@property --tw-font-weight{syntax:"*";inherits:false}@property --tw-tracking{syntax:"*";inherits:false}@property --tw-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-shadow-color{syntax:"*";inherits:false}@property --tw-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-inset-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-inset-shadow-color{syntax:"*";inherits:false}@property --tw-inset-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-ring-color{syntax:"*";inherits:false}@property --tw-ring-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-inset-ring-color{syntax:"*";inherits:false}@property --tw-inset-ring-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-ring-inset{syntax:"*";inherits:false}@property --tw-ring-offset-width{syntax:"<length>";inherits:false;initial-value:0}@property --tw-ring-offset-color{syntax:"*";inherits:false;initial-value:#fff}@property --tw-ring-offset-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}
+/*$vite$:1*/</style>
+  </head>
+  <body class="min-h-screen p-4 sm:p-6 lg:p-8 font-body">
+    <!-- DO NOTE REMOVE THIS BLOCK - SERVER REPLACE {{var}} START -->
+    <header class="max-w-[1000px] mx-auto mb-6 flex flex-row items-end justify-between gap-8">
+      <div class="flex flex-row items-center gap-4">
+        <img
+          data-part="avatar"
+          src="{{avatarUrl}}"
+          alt="Profile"
+          class="w-[54px] h-[54px] rounded-full object-cover flex-shrink-0"
+        />
+        <div class="flex flex-col gap-0.5">
+          <h1 data-part="title" class="font-semibold text-xl leading-[1.6] text-[var(--color-gray-1)]">
+            สวัสดี {{displayName}}
+          </h1>
+          <p data-part="subtitle" class="text-sm leading-[1.43] text-[var(--color-gray-3)]">
+            วันนี้เกิดไรขึ้นบ้างมาดูกัน
+          </p>
+        </div>
+      </div>
+      <p
+        data-part="updated-at"
+        class="text-sm leading-[1.43] text-[var(--color-gray-5)] whitespace-nowrap hidden md:block"
+      >
+        อัปเดตล่าสุด {{homePageUpdatedAtFormatted}}
+      </p>
+    </header>
+    <!-- SERVER REPLACE {{var}} END -->
+
+    <main id="widgets-grid" class="max-w-[1000px] mx-auto columns-1 md:columns-2 lg:columns-3 gap-6 pb-6">
+      <!-- widgets go here -->
+
+      <!-- Col-1 -->
+      <div class="break-inside-avoid mb-4">
+        <div class="bg-[#f5f5f5] flex flex-col gap-4 p-4 rounded-2xl overflow-hidden relative mb-6">
+          <div data-part="decoration" class="radial-corner absolute z-0"></div>
+          <div class="z-1">
+            <div class="flex items-start justify-between">
+              <div class="flex gap-2 items-start flex-1 min-w-0">
+                <i
+                  data-part="icon"
+                  class="fa-regular fa-bullseye-arrow text-base mt-[2px] text-[var(--color-primary)]"
+                ></i>
+                <div class="min-w-0">
+                  <div
+                    data-part="title"
+                    class="text-sm break-words font-medium text-[var(--color-gray-1)] leading-tight clamp-2"
+                  >
+                    High-Level Insight
+                  </div>
+                </div>
+              </div>
+              <div data-more-title="Title" data-part="more" class="shrink-0 ml-2">
+                <div data-part="level1" data-more-title="TOL" class="">
+                  <button class="flex gap-1 items-center py-0.5 cursor-pointer bg-transparent border-0">
+                    <span class="text-[10px] font-medium text-[var(--color-gray-5)] leading-3 whitespace-nowrap"
+                      >More</span
+                    >
+                    <i class="fa-regular fa-chevron-right text-xs text-[var(--color-gray-6)]"></i>
+                  </button>
+                  <template data-more-content="">
+                    <div data-chart-line-card="" class="bg-white rounded-2xl p-4 flex flex-col gap-3">
+                      <div class="flex items-start justify-between gap-2">
+                        <div class="min-w-0">
+                          <div data-part="title" class="text-sm font-medium text-[var(--color-gray-1)] truncate"
+                            >Sale Performance</div
+                          >
+                          <div data-part="subtitle" class="text-xs italic text-[var(--color-gray-5)] truncate"
+                            >Month to date trend</div
+                          >
+                        </div>
+                      </div>
+
+                      <div data-part="chart" class="relative" style="height: 160px">
+                        <canvas data-chart-line=""></canvas>
+
+                        <script type="application/json" data-chart-line-config="">
+                          {
+                            "type": "line",
+                            "labels": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
+                            "datasets": [
+                              {
+                                "label": "Mass",
+                                "borderColor": "#7C3AED",
+                                "backgroundColor": "#7C3AED",
+                                "borderDash": [6, 3],
+                                "borderWidth": 1.5,
+                                "pointRadius": 2.5,
+                                "pointHoverRadius": 4,
+                                "fill": false,
+                                "tension": 0.3,
+                                "data": [
+                                  800,
+                                  900,
+                                  1050,
+                                  1800,
+                                  1700,
+                                  1650,
+                                  1600,
+                                  1500,
+                                  null,
+                                  null,
+                                  null,
+                                  null,
+                                  null,
+                                  null,
+                                  null,
+                                  null,
+                                  null
+                                ]
+                              },
+                              {
+                                "label": "Migrant",
+                                "borderColor": "#E61E73",
+                                "backgroundColor": "#E61E73",
+                                "borderDash": [6, 3],
+                                "borderWidth": 1.5,
+                                "pointRadius": 2.5,
+                                "pointHoverRadius": 4,
+                                "fill": false,
+                                "tension": 0.3,
+                                "data": [
+                                  1000, 1100, 1200, 1500, 2000, 2100, 2200, 2300, 2800, 3300, 3500, 3700, 4000, 4100,
+                                  4200, 4300, 4500
+                                ]
+                              },
+                              {
+                                "label": "Tourist",
+                                "borderColor": "#FFB400",
+                                "backgroundColor": "#FFB400",
+                                "borderDash": [6, 3],
+                                "borderWidth": 1.5,
+                                "pointRadius": 2.5,
+                                "pointHoverRadius": 4,
+                                "fill": false,
+                                "tension": 0.3,
+                                "data": [
+                                  1100,
+                                  1200,
+                                  1400,
+                                  2000,
+                                  2400,
+                                  2800,
+                                  3500,
+                                  3700,
+                                  4000,
+                                  4500,
+                                  4700,
+                                  5000,
+                                  5300,
+                                  5100,
+                                  5200,
+                                  5500,
+                                  null
+                                ]
+                              },
+                              {
+                                "label": "Student",
+                                "borderColor": "#FF5252",
+                                "backgroundColor": "#FF5252",
+                                "borderDash": [6, 3],
+                                "borderWidth": 1.5,
+                                "pointRadius": 2.5,
+                                "pointHoverRadius": 4,
+                                "fill": false,
+                                "tension": 0.3,
+                                "data": [
+                                  1200,
+                                  1300,
+                                  1500,
+                                  2100,
+                                  2500,
+                                  2900,
+                                  3500,
+                                  3800,
+                                  4100,
+                                  4600,
+                                  4900,
+                                  5100,
+                                  5400,
+                                  5500,
+                                  5600,
+                                  5800,
+                                  null
+                                ]
+                              }
+                            ]
+                          }
+                        </script></div
+                      >
+
+                      <div data-part="legend" class="flex flex-wrap gap-3"></div>
+                    </div>
+
+                    <div data-map="" data-lat="13.7563" data-lng="100.5018" data-radius="500" class="w-full h-80 rounded-xl overflow-hidden mt-6 mb-6"></div>
+                  </template>
+                </div>
+              </div>
+            </div>
+            <div data-part="slot" class="bg-white mt-4 rounded-2xl w-full overflow-hidden">
+              <div
+                data-part="container"
+                class="text-widget rounded-2xl p-5 w-full flex flex-col gap-1"
+                style="--text-bg: var(--color-primary); --text-color: #ffffff"
+              >
+                <p data-part="text" class="text-sm leading-5 break-words whitespace-pre-line m-0 mt-2"
+                  >The standard chunk of Lorem Ipsum used since the 1500s is reproduced below for those interested.
+                  Sections 1.10.32 and 1.10.33 from "de Finibus Bonorum et Malorum" by Cicero are also reproduced in
+                  their exact original form, accompanied by English versions from the 1914 translation by H. Rackham. It
+                  is a long established fact that a reader will be distracted by the readable content of a page when
+                  looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Col-1 End -->
+
+      <!-- Col-2 -->
+      <div class="break-inside-avoid mb-4">
+        <!-- Base card -->
+        <div class="bg-[#f5f5f5] flex flex-col gap-4 p-4 rounded-2xl overflow-hidden relative mb-6">
+          <div data-part="decoration" class="radial-corner absolute z-0"></div>
+          <div class="z-1">
+            <div class="flex items-start justify-between">
+              <div class="flex gap-2 items-start flex-1 min-w-0">
+                <i
+                  data-part="icon"
+                  class="fa-regular fa-chart-line-up text-base mt-[2px] text-[var(--color-primary)]"
+                ></i>
+                <div class="min-w-0">
+                  <div
+                    data-part="title"
+                    class="text-sm break-words font-medium text-[var(--color-gray-1)] leading-tight clamp-2"
+                  >
+                    Sale performance: Prepaid
+                  </div>
+                </div>
+              </div>
+              <div data-more-title="Title" data-part="more" class="shrink-0 ml-2">
+                <button class="flex gap-1 items-center py-0.5 cursor-pointer bg-transparent border-0">
+                  <span class="text-[10px] font-medium text-[var(--color-gray-5)] leading-3 whitespace-nowrap"
+                    >More</span
+                  >
+                  <i class="fa-regular fa-chevron-right text-xs text-[var(--color-gray-6)]"></i>
+                </button>
+              </div>
+            </div>
+
+            <div data-carousel="" class="embla mt-4">
+              <div data-carousel-viewport="" class="embla__viewport">
+                <div data-carousel-container="" class="embla__container">
+                  <!-- slide 1 -->
+                  <div data-part="slide" class="embla__slide">
+                    <div class="rounded-2xl bg-white overflow-hidden">
+                      <div
+                        data-part="container"
+                        class="text-widget p-4 w-full flex flex-col gap-1"
+                        style="--text-bg: #ffffff; --text-color: var(--color-gray-1)"
+                      >
+                        <div data-part="title" class="text-sm font-semibold leading-5 break-words clamp-2"
+                          >Gross Add</div
+                        >
+                        <div
+                          data-part="subtitle"
+                          class="text-xs break-words italic text-[var(--color-gray-5)] leading-4 clamp-2"
+                        >
+                          18 มีนาคม 2568 : 16:08 น.
+                        </div>
+
+                        <div data-part="red" style="--progress-color: var(--color-decent-red)" class="mt-4">
+                          <div class="flex items-start justify-between">
+                            <div class="min-w-0">
+                              <div
+                                data-part="title"
+                                class="text-sm break-words font-medium text-[var(--color-gray-1)] leading-5 clamp-2"
+                              >
+                                Month to date
+                              </div>
+                            </div>
+                          </div>
+                          <div class="flex items-center gap-6">
+                            <div class="relative shrink-0 w-[100px] h-[100px] flex items-center justify-center">
+                              <canvas
+                                data-chart-circular=""
+                                data-value="50"
+                                width="100"
+                                height="100"
+                                class="absolute inset-0"
+                              ></canvas>
+                              <div class="flex flex-col items-center gap-[3px] z-10 max-w-[72px]">
+                                <span class="text-[12px] text-[var(--color-gray-5)]">%Ach</span>
+                                <span class="text-base font-medium leading-none text-[var(--color-gray-1)]">50%</span>
+                                <span
+                                  data-part="status"
+                                  class="text-[9px] font-medium italic text-[var(--color-decent-red)]"
+                                  >MTD</span
+                                >
+                              </div>
+                            </div>
+                            <div data-part="metrics" class="flex-1 min-w-0 flex flex-col gap-4">
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0">
+                                  <span class="text-sm font-medium leading-tight min-w-0 truncate">20000</span>
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">Actual</span>
+                              </div>
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0">
+                                  <span
+                                    class="text-sm font-medium leading-tight min-w-0 truncate text-[var(--color-gray-1)]"
+                                    >30000</span
+                                  >
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">Target</span>
+                              </div>
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0 text-[var(--color-decent-red)]">
+                                  <span class="text-sm font-medium leading-tight min-w-0 truncate">-66%</span>
+                                  <i class="fa-solid fa-arrow-down text-[10px] shrink-0"></i>
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">MOM</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div
+                        data-part="container"
+                        class="text-widget p-4 w-full flex flex-col gap-1"
+                        style="--text-bg: #ffffff; --text-color: var(--color-gray-1)"
+                      >
+                        <div data-part="red" style="--progress-color: var(--color-decent-red)">
+                          <div class="flex items-start justify-between">
+                            <div class="min-w-0">
+                              <div
+                                data-part="title"
+                                class="text-sm break-words font-medium text-[var(--color-gray-1)] leading-5 clamp-2"
+                              >
+                                Run rate
+                              </div>
+                            </div>
+                          </div>
+                          <div class="flex items-center gap-6">
+                            <div class="relative shrink-0 w-[100px] h-[100px] flex items-center justify-center">
+                              <canvas
+                                data-chart-circular=""
+                                data-value="67"
+                                width="100"
+                                height="100"
+                                class="absolute inset-0"
+                              ></canvas>
+                              <div class="flex flex-col items-center gap-[3px] z-10 max-w-[72px]">
+                                <span class="text-[12px] text-[var(--color-gray-5)]">%Ach</span>
+                                <span class="text-base font-medium leading-none text-[var(--color-gray-1)]">67%</span>
+                                <span
+                                  data-part="status"
+                                  class="text-[9px] font-medium italic text-[var(--color-decent-red)]"
+                                  >YTD</span
+                                >
+                              </div>
+                            </div>
+                            <div data-part="metrics" class="flex-1 min-w-0 flex flex-col gap-4">
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0">
+                                  <span class="text-sm font-medium leading-tight min-w-0 truncate">27000</span>
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">Actual</span>
+                              </div>
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0">
+                                  <span
+                                    class="text-sm font-medium leading-tight min-w-0 truncate text-[var(--color-gray-1)]"
+                                    >40000</span
+                                  >
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">Target</span>
+                              </div>
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0 text-[var(--color-decent-red)]">
+                                  <span class="text-sm font-medium leading-tight min-w-0 truncate">-55%</span>
+                                  <i class="fa-solid fa-arrow-down text-[10px] shrink-0"></i>
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">MOM</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div></div
+                    >
+                  </div>
+
+                  <!-- slide 2 -->
+                  <div data-part="slide" class="embla__slide">
+                    <div class="rounded-2xl bg-white overflow-hidden">
+                      <div
+                        data-part="container"
+                        class="text-widget p-4 w-full flex flex-col gap-1"
+                        style="--text-bg: #ffffff; --text-color: var(--color-gray-1)"
+                      >
+                        <div data-part="title" class="text-sm font-semibold leading-5 break-words clamp-2">Ap1D</div>
+                        <div
+                          data-part="subtitle"
+                          class="text-xs break-words italic text-[var(--color-gray-5)] leading-4 clamp-2"
+                        >
+                          18 มีนาคม 2568 : 16:08 น.
+                        </div>
+
+                        <div data-part="red" style="--progress-color: var(--color-decent-red)" class="mt-4">
+                          <div class="flex items-start justify-between">
+                            <div class="min-w-0">
+                              <div
+                                data-part="title"
+                                class="text-sm break-words font-medium text-[var(--color-gray-1)] leading-5 clamp-2"
+                              >
+                                Month to date
+                              </div>
+                            </div>
+                          </div>
+                          <div class="flex items-center gap-6">
+                            <div class="relative shrink-0 w-[100px] h-[100px] flex items-center justify-center">
+                              <canvas
+                                data-chart-circular=""
+                                data-value="50"
+                                width="100"
+                                height="100"
+                                class="absolute inset-0"
+                              ></canvas>
+                              <div class="flex flex-col items-center gap-[3px] z-10 max-w-[72px]">
+                                <span class="text-[12px] text-[var(--color-gray-5)]">%Ach</span>
+                                <span class="text-base font-medium leading-none text-[var(--color-gray-1)]">50%</span>
+                                <span
+                                  data-part="status"
+                                  class="text-[9px] font-medium italic text-[var(--color-decent-red)]"
+                                  >MTD</span
+                                >
+                              </div>
+                            </div>
+                            <div data-part="metrics" class="flex-1 min-w-0 flex flex-col gap-4">
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0">
+                                  <span class="text-sm font-medium leading-tight min-w-0 truncate">20000</span>
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">Actual</span>
+                              </div>
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0">
+                                  <span
+                                    class="text-sm font-medium leading-tight min-w-0 truncate text-[var(--color-gray-1)]"
+                                    >30000</span
+                                  >
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">Target</span>
+                              </div>
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0 text-[var(--color-decent-red)]">
+                                  <span class="text-sm font-medium leading-tight min-w-0 truncate">-66%</span>
+                                  <i class="fa-solid fa-arrow-down text-[10px] shrink-0"></i>
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">MOM</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div
+                        data-part="container"
+                        class="text-widget p-4 w-full flex flex-col gap-1"
+                        style="--text-bg: #ffffff; --text-color: var(--color-gray-1)"
+                      >
+                        <div data-part="red" style="--progress-color: var(--color-decent-red)">
+                          <div class="flex items-start justify-between">
+                            <div class="min-w-0">
+                              <div
+                                data-part="title"
+                                class="text-sm break-words font-medium text-[var(--color-gray-1)] leading-5 clamp-2"
+                              >
+                                Run rate
+                              </div>
+                            </div>
+                          </div>
+                          <div class="flex items-center gap-6">
+                            <div class="relative shrink-0 w-[100px] h-[100px] flex items-center justify-center">
+                              <canvas
+                                data-chart-circular=""
+                                data-value="67"
+                                width="100"
+                                height="100"
+                                class="absolute inset-0"
+                              ></canvas>
+                              <div class="flex flex-col items-center gap-[3px] z-10 max-w-[72px]">
+                                <span class="text-[12px] text-[var(--color-gray-5)]">%Ach</span>
+                                <span class="text-base font-medium leading-none text-[var(--color-gray-1)]">67%</span>
+                                <span
+                                  data-part="status"
+                                  class="text-[9px] font-medium italic text-[var(--color-decent-red)]"
+                                  >YTD</span
+                                >
+                              </div>
+                            </div>
+                            <div data-part="metrics" class="flex-1 min-w-0 flex flex-col gap-4">
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0">
+                                  <span class="text-sm font-medium leading-tight min-w-0 truncate">27000</span>
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">Actual</span>
+                              </div>
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0">
+                                  <span
+                                    class="text-sm font-medium leading-tight min-w-0 truncate text-[var(--color-gray-1)]"
+                                    >40000</span
+                                  >
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">Target</span>
+                              </div>
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0 text-[var(--color-decent-red)]">
+                                  <span class="text-sm font-medium leading-tight min-w-0 truncate">-55%</span>
+                                  <i class="fa-solid fa-arrow-down text-[10px] shrink-0"></i>
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">MOM</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div></div
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Base card -->
+        <div class="bg-[#f5f5f5] flex flex-col gap-4 p-4 rounded-2xl overflow-hidden relative mb-6">
+          <div data-part="decoration" class="radial-corner absolute z-0"></div>
+          <div class="z-1">
+            <div class="flex items-start justify-between">
+              <div class="flex gap-2 items-start flex-1 min-w-0">
+                <i
+                  data-part="icon"
+                  class="fa-regular fa-chart-line-up text-base mt-[2px] text-[var(--color-primary)]"
+                ></i>
+                <div class="min-w-0">
+                  <div
+                    data-part="title"
+                    class="text-sm break-words font-medium text-[var(--color-gray-1)] leading-tight clamp-2"
+                  >
+                    Sale performance: Prepaid
+                  </div>
+                </div>
+              </div>
+              <div data-more-title="Title" data-part="more" class="shrink-0 ml-2">
+                <button class="flex gap-1 items-center py-0.5 cursor-pointer bg-transparent border-0">
+                  <span class="text-[10px] font-medium text-[var(--color-gray-5)] leading-3 whitespace-nowrap"
+                    >More</span
+                  >
+                  <i class="fa-regular fa-chevron-right text-xs text-[var(--color-gray-6)]"></i>
+                </button>
+              </div>
+            </div>
+
+            <div data-carousel="" class="embla mt-4">
+              <div data-carousel-viewport="" class="embla__viewport">
+                <div data-carousel-container="" class="embla__container">
+                  <!-- slide 1 -->
+                  <div data-part="slide" class="embla__slide">
+                    <div class="rounded-2xl bg-white overflow-hidden">
+                      <div
+                        data-part="container"
+                        class="text-widget p-4 w-full flex flex-col gap-1"
+                        style="--text-bg: #ffffff; --text-color: var(--color-gray-1)"
+                      >
+                        <div data-part="title" class="text-sm font-semibold leading-5 break-words clamp-2"
+                          >Gross Add</div
+                        >
+                        <div
+                          data-part="subtitle"
+                          class="text-xs break-words italic text-[var(--color-gray-5)] leading-4 clamp-2"
+                        >
+                          18 มีนาคม 2568 : 16:08 น.
+                        </div>
+
+                        <div data-part="red" style="--progress-color: var(--color-decent-red)" class="mt-4">
+                          <div class="flex items-start justify-between">
+                            <div class="min-w-0">
+                              <div
+                                data-part="title"
+                                class="text-sm break-words font-medium text-[var(--color-gray-1)] leading-5 clamp-2"
+                              >
+                                Month to date
+                              </div>
+                            </div>
+                          </div>
+                          <div class="flex items-center gap-6">
+                            <div class="relative shrink-0 w-[100px] h-[100px] flex items-center justify-center">
+                              <canvas
+                                data-chart-circular=""
+                                data-value="50"
+                                width="100"
+                                height="100"
+                                class="absolute inset-0"
+                              ></canvas>
+                              <div class="flex flex-col items-center gap-[3px] z-10 max-w-[72px]">
+                                <span class="text-[12px] text-[var(--color-gray-5)]">%Ach</span>
+                                <span class="text-base font-medium leading-none text-[var(--color-gray-1)]">50%</span>
+                                <span
+                                  data-part="status"
+                                  class="text-[9px] font-medium italic text-[var(--color-decent-red)]"
+                                  >MTD</span
+                                >
+                              </div>
+                            </div>
+                            <div data-part="metrics" class="flex-1 min-w-0 flex flex-col gap-4">
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0">
+                                  <span class="text-sm font-medium leading-tight min-w-0 truncate">20000</span>
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">Actual</span>
+                              </div>
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0">
+                                  <span
+                                    class="text-sm font-medium leading-tight min-w-0 truncate text-[var(--color-gray-1)]"
+                                    >30000</span
+                                  >
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">Target</span>
+                              </div>
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0 text-[var(--color-decent-red)]">
+                                  <span class="text-sm font-medium leading-tight min-w-0 truncate">-66%</span>
+                                  <i class="fa-solid fa-arrow-down text-[10px] shrink-0"></i>
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">MOM</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div
+                        data-part="container"
+                        class="text-widget p-4 w-full flex flex-col gap-1"
+                        style="--text-bg: #ffffff; --text-color: var(--color-gray-1)"
+                      >
+                        <div data-part="red" style="--progress-color: var(--color-decent-red)">
+                          <div class="flex items-start justify-between">
+                            <div class="min-w-0">
+                              <div
+                                data-part="title"
+                                class="text-sm break-words font-medium text-[var(--color-gray-1)] leading-5 clamp-2"
+                              >
+                                Run rate
+                              </div>
+                            </div>
+                          </div>
+                          <div class="flex items-center gap-6">
+                            <div class="relative shrink-0 w-[100px] h-[100px] flex items-center justify-center">
+                              <canvas
+                                data-chart-circular=""
+                                data-value="67"
+                                width="100"
+                                height="100"
+                                class="absolute inset-0"
+                              ></canvas>
+                              <div class="flex flex-col items-center gap-[3px] z-10 max-w-[72px]">
+                                <span class="text-[12px] text-[var(--color-gray-5)]">%Ach</span>
+                                <span class="text-base font-medium leading-none text-[var(--color-gray-1)]">67%</span>
+                                <span
+                                  data-part="status"
+                                  class="text-[9px] font-medium italic text-[var(--color-decent-red)]"
+                                  >YTD</span
+                                >
+                              </div>
+                            </div>
+                            <div data-part="metrics" class="flex-1 min-w-0 flex flex-col gap-4">
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0">
+                                  <span class="text-sm font-medium leading-tight min-w-0 truncate">27000</span>
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">Actual</span>
+                              </div>
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0">
+                                  <span
+                                    class="text-sm font-medium leading-tight min-w-0 truncate text-[var(--color-gray-1)]"
+                                    >40000</span
+                                  >
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">Target</span>
+                              </div>
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0 text-[var(--color-decent-red)]">
+                                  <span class="text-sm font-medium leading-tight min-w-0 truncate">-55%</span>
+                                  <i class="fa-solid fa-arrow-down text-[10px] shrink-0"></i>
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">MOM</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div></div
+                    >
+                  </div>
+
+                  <!-- slide 2 -->
+                  <div data-part="slide" class="embla__slide">
+                    <div class="rounded-2xl bg-white overflow-hidden">
+                      <div
+                        data-part="container"
+                        class="text-widget p-4 w-full flex flex-col gap-1"
+                        style="--text-bg: #ffffff; --text-color: var(--color-gray-1)"
+                      >
+                        <div data-part="title" class="text-sm font-semibold leading-5 break-words clamp-2">Ap1D</div>
+                        <div
+                          data-part="subtitle"
+                          class="text-xs break-words italic text-[var(--color-gray-5)] leading-4 clamp-2"
+                        >
+                          18 มีนาคม 2568 : 16:08 น.
+                        </div>
+
+                        <div data-part="red" style="--progress-color: var(--color-decent-red)" class="mt-4">
+                          <div class="flex items-start justify-between">
+                            <div class="min-w-0">
+                              <div
+                                data-part="title"
+                                class="text-sm break-words font-medium text-[var(--color-gray-1)] leading-5 clamp-2"
+                              >
+                                Month to date
+                              </div>
+                            </div>
+                          </div>
+                          <div class="flex items-center gap-6">
+                            <div class="relative shrink-0 w-[100px] h-[100px] flex items-center justify-center">
+                              <canvas
+                                data-chart-circular=""
+                                data-value="50"
+                                width="100"
+                                height="100"
+                                class="absolute inset-0"
+                              ></canvas>
+                              <div class="flex flex-col items-center gap-[3px] z-10 max-w-[72px]">
+                                <span class="text-[12px] text-[var(--color-gray-5)]">%Ach</span>
+                                <span class="text-base font-medium leading-none text-[var(--color-gray-1)]">50%</span>
+                                <span
+                                  data-part="status"
+                                  class="text-[9px] font-medium italic text-[var(--color-decent-red)]"
+                                  >MTD</span
+                                >
+                              </div>
+                            </div>
+                            <div data-part="metrics" class="flex-1 min-w-0 flex flex-col gap-4">
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0">
+                                  <span class="text-sm font-medium leading-tight min-w-0 truncate">20000</span>
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">Actual</span>
+                              </div>
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0">
+                                  <span
+                                    class="text-sm font-medium leading-tight min-w-0 truncate text-[var(--color-gray-1)]"
+                                    >30000</span
+                                  >
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">Target</span>
+                              </div>
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0 text-[var(--color-decent-red)]">
+                                  <span class="text-sm font-medium leading-tight min-w-0 truncate">-66%</span>
+                                  <i class="fa-solid fa-arrow-down text-[10px] shrink-0"></i>
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">MOM</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div
+                        data-part="container"
+                        class="text-widget p-4 w-full flex flex-col gap-1"
+                        style="--text-bg: #ffffff; --text-color: var(--color-gray-1)"
+                      >
+                        <div data-part="red" style="--progress-color: var(--color-decent-red)">
+                          <div class="flex items-start justify-between">
+                            <div class="min-w-0">
+                              <div
+                                data-part="title"
+                                class="text-sm break-words font-medium text-[var(--color-gray-1)] leading-5 clamp-2"
+                              >
+                                Run rate
+                              </div>
+                            </div>
+                          </div>
+                          <div class="flex items-center gap-6">
+                            <div class="relative shrink-0 w-[100px] h-[100px] flex items-center justify-center">
+                              <canvas
+                                data-chart-circular=""
+                                data-value="67"
+                                width="100"
+                                height="100"
+                                class="absolute inset-0"
+                              ></canvas>
+                              <div class="flex flex-col items-center gap-[3px] z-10 max-w-[72px]">
+                                <span class="text-[12px] text-[var(--color-gray-5)]">%Ach</span>
+                                <span class="text-base font-medium leading-none text-[var(--color-gray-1)]">67%</span>
+                                <span
+                                  data-part="status"
+                                  class="text-[9px] font-medium italic text-[var(--color-decent-red)]"
+                                  >YTD</span
+                                >
+                              </div>
+                            </div>
+                            <div data-part="metrics" class="flex-1 min-w-0 flex flex-col gap-4">
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0">
+                                  <span class="text-sm font-medium leading-tight min-w-0 truncate">27000</span>
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">Actual</span>
+                              </div>
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0">
+                                  <span
+                                    class="text-sm font-medium leading-tight min-w-0 truncate text-[var(--color-gray-1)]"
+                                    >40000</span
+                                  >
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">Target</span>
+                              </div>
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0 text-[var(--color-decent-red)]">
+                                  <span class="text-sm font-medium leading-tight min-w-0 truncate">-55%</span>
+                                  <i class="fa-solid fa-arrow-down text-[10px] shrink-0"></i>
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">MOM</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div></div
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Base card -->
+        <div class="bg-[#f5f5f5] flex flex-col gap-4 p-4 rounded-2xl overflow-hidden relative mb-6">
+          <div data-part="decoration" class="radial-corner absolute z-0"></div>
+          <div class="z-1">
+            <div class="flex items-start justify-between">
+              <div class="flex gap-2 items-start flex-1 min-w-0">
+                <i
+                  data-part="icon"
+                  class="fa-regular fa-chart-line-up text-base mt-[2px] text-[var(--color-primary)]"
+                ></i>
+                <div class="min-w-0">
+                  <div
+                    data-part="title"
+                    class="text-sm break-words font-medium text-[var(--color-gray-1)] leading-tight clamp-2"
+                  >
+                    Sale performance: Prepaid
+                  </div>
+                </div>
+              </div>
+              <div data-more-title="Title" data-part="more" class="shrink-0 ml-2">
+                <button class="flex gap-1 items-center py-0.5 cursor-pointer bg-transparent border-0">
+                  <span class="text-[10px] font-medium text-[var(--color-gray-5)] leading-3 whitespace-nowrap"
+                    >More</span
+                  >
+                  <i class="fa-regular fa-chevron-right text-xs text-[var(--color-gray-6)]"></i>
+                </button>
+              </div>
+            </div>
+
+            <div data-carousel="" class="embla mt-4">
+              <div data-carousel-viewport="" class="embla__viewport">
+                <div data-carousel-container="" class="embla__container">
+                  <!-- slide 1 -->
+                  <div data-part="slide" class="embla__slide">
+                    <div class="rounded-2xl bg-white overflow-hidden">
+                      <div
+                        data-part="container"
+                        class="text-widget p-4 w-full flex flex-col gap-1"
+                        style="--text-bg: #ffffff; --text-color: var(--color-gray-1)"
+                      >
+                        <div data-part="title" class="text-sm font-semibold leading-5 break-words clamp-2"
+                          >Inflow M1</div
+                        >
+                        <div
+                          data-part="subtitle"
+                          class="text-xs break-words italic text-[var(--color-gray-5)] leading-4 clamp-2"
+                        >
+                          18 มีนาคม 2568 : 16:08 น.
+                        </div>
+
+                        <div data-part="red" style="--progress-color: var(--color-decent-red)" class="mt-4">
+                          <div class="flex items-start justify-between">
+                            <div class="min-w-0">
+                              <div
+                                data-part="title"
+                                class="text-sm break-words font-medium text-[var(--color-gray-1)] leading-5 clamp-2"
+                              >
+                                Month to date
+                              </div>
+                            </div>
+                          </div>
+                          <div class="flex items-center gap-6">
+                            <div class="relative shrink-0 w-[100px] h-[100px] flex items-center justify-center">
+                              <canvas
+                                data-chart-circular=""
+                                data-value="50"
+                                width="100"
+                                height="100"
+                                class="absolute inset-0"
+                              ></canvas>
+                              <div class="flex flex-col items-center gap-[3px] z-10 max-w-[72px]">
+                                <span class="text-[12px] text-[var(--color-gray-5)]">%Ach</span>
+                                <span class="text-base font-medium leading-none text-[var(--color-gray-1)]">50%</span>
+                                <span
+                                  data-part="status"
+                                  class="text-[9px] font-medium italic text-[var(--color-decent-red)]"
+                                  >MTD</span
+                                >
+                              </div>
+                            </div>
+                            <div data-part="metrics" class="flex-1 min-w-0 flex flex-col gap-4">
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0">
+                                  <span class="text-sm font-medium leading-tight min-w-0 truncate">20000</span>
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">Actual</span>
+                              </div>
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0">
+                                  <span
+                                    class="text-sm font-medium leading-tight min-w-0 truncate text-[var(--color-gray-1)]"
+                                    >30000</span
+                                  >
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">Target</span>
+                              </div>
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0 text-[var(--color-decent-red)]">
+                                  <span class="text-sm font-medium leading-tight min-w-0 truncate">-66%</span>
+                                  <i class="fa-solid fa-arrow-down text-[10px] shrink-0"></i>
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">MOM</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div
+                        data-part="container"
+                        class="text-widget p-4 w-full flex flex-col gap-1"
+                        style="--text-bg: #ffffff; --text-color: var(--color-gray-1)"
+                      >
+                        <div data-part="red" style="--progress-color: var(--color-decent-red)">
+                          <div class="flex items-start justify-between">
+                            <div class="min-w-0">
+                              <div
+                                data-part="title"
+                                class="text-sm break-words font-medium text-[var(--color-gray-1)] leading-5 clamp-2"
+                              >
+                                Run rate
+                              </div>
+                            </div>
+                          </div>
+                          <div class="flex items-center gap-6">
+                            <div class="relative shrink-0 w-[100px] h-[100px] flex items-center justify-center">
+                              <canvas
+                                data-chart-circular=""
+                                data-value="67"
+                                width="100"
+                                height="100"
+                                class="absolute inset-0"
+                              ></canvas>
+                              <div class="flex flex-col items-center gap-[3px] z-10 max-w-[72px]">
+                                <span class="text-[12px] text-[var(--color-gray-5)]">%Ach</span>
+                                <span class="text-base font-medium leading-none text-[var(--color-gray-1)]">67%</span>
+                                <span
+                                  data-part="status"
+                                  class="text-[9px] font-medium italic text-[var(--color-decent-red)]"
+                                  >YTD</span
+                                >
+                              </div>
+                            </div>
+                            <div data-part="metrics" class="flex-1 min-w-0 flex flex-col gap-4">
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0">
+                                  <span class="text-sm font-medium leading-tight min-w-0 truncate">27000</span>
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">Actual</span>
+                              </div>
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0">
+                                  <span
+                                    class="text-sm font-medium leading-tight min-w-0 truncate text-[var(--color-gray-1)]"
+                                    >40000</span
+                                  >
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">Target</span>
+                              </div>
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0 text-[var(--color-decent-red)]">
+                                  <span class="text-sm font-medium leading-tight min-w-0 truncate">-55%</span>
+                                  <i class="fa-solid fa-arrow-down text-[10px] shrink-0"></i>
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">MOM</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div></div
+                    >
+                  </div>
+
+                  <!-- slide 2 -->
+                  <div data-part="slide" class="embla__slide">
+                    <div class="rounded-2xl bg-white overflow-hidden">
+                      <div
+                        data-part="container"
+                        class="text-widget p-4 w-full flex flex-col gap-1"
+                        style="--text-bg: #ffffff; --text-color: var(--color-gray-1)"
+                      >
+                        <div data-part="title" class="text-sm font-semibold leading-5 break-words clamp-2">Ap1D</div>
+                        <div
+                          data-part="subtitle"
+                          class="text-xs break-words italic text-[var(--color-gray-5)] leading-4 clamp-2"
+                        >
+                          18 มีนาคม 2568 : 16:08 น.
+                        </div>
+
+                        <div data-part="red" style="--progress-color: var(--color-decent-red)" class="mt-4">
+                          <div class="flex items-start justify-between">
+                            <div class="min-w-0">
+                              <div
+                                data-part="title"
+                                class="text-sm break-words font-medium text-[var(--color-gray-1)] leading-5 clamp-2"
+                              >
+                                Month to date
+                              </div>
+                            </div>
+                          </div>
+                          <div class="flex items-center gap-6">
+                            <div class="relative shrink-0 w-[100px] h-[100px] flex items-center justify-center">
+                              <canvas
+                                data-chart-circular=""
+                                data-value="50"
+                                width="100"
+                                height="100"
+                                class="absolute inset-0"
+                              ></canvas>
+                              <div class="flex flex-col items-center gap-[3px] z-10 max-w-[72px]">
+                                <span class="text-[12px] text-[var(--color-gray-5)]">%Ach</span>
+                                <span class="text-base font-medium leading-none text-[var(--color-gray-1)]">50%</span>
+                                <span
+                                  data-part="status"
+                                  class="text-[9px] font-medium italic text-[var(--color-decent-red)]"
+                                  >MTD</span
+                                >
+                              </div>
+                            </div>
+                            <div data-part="metrics" class="flex-1 min-w-0 flex flex-col gap-4">
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0">
+                                  <span class="text-sm font-medium leading-tight min-w-0 truncate">20000</span>
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">Actual</span>
+                              </div>
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0">
+                                  <span
+                                    class="text-sm font-medium leading-tight min-w-0 truncate text-[var(--color-gray-1)]"
+                                    >30000</span
+                                  >
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">Target</span>
+                              </div>
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0 text-[var(--color-decent-red)]">
+                                  <span class="text-sm font-medium leading-tight min-w-0 truncate">-66%</span>
+                                  <i class="fa-solid fa-arrow-down text-[10px] shrink-0"></i>
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">MOM</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div
+                        data-part="container"
+                        class="text-widget p-4 w-full flex flex-col gap-1"
+                        style="--text-bg: #ffffff; --text-color: var(--color-gray-1)"
+                      >
+                        <div data-part="red" style="--progress-color: var(--color-decent-red)">
+                          <div class="flex items-start justify-between">
+                            <div class="min-w-0">
+                              <div
+                                data-part="title"
+                                class="text-sm break-words font-medium text-[var(--color-gray-1)] leading-5 clamp-2"
+                              >
+                                Run rate
+                              </div>
+                            </div>
+                          </div>
+                          <div class="flex items-center gap-6">
+                            <div class="relative shrink-0 w-[100px] h-[100px] flex items-center justify-center">
+                              <canvas
+                                data-chart-circular=""
+                                data-value="67"
+                                width="100"
+                                height="100"
+                                class="absolute inset-0"
+                              ></canvas>
+                              <div class="flex flex-col items-center gap-[3px] z-10 max-w-[72px]">
+                                <span class="text-[12px] text-[var(--color-gray-5)]">%Ach</span>
+                                <span class="text-base font-medium leading-none text-[var(--color-gray-1)]">67%</span>
+                                <span
+                                  data-part="status"
+                                  class="text-[9px] font-medium italic text-[var(--color-decent-red)]"
+                                  >YTD</span
+                                >
+                              </div>
+                            </div>
+                            <div data-part="metrics" class="flex-1 min-w-0 flex flex-col gap-4">
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0">
+                                  <span class="text-sm font-medium leading-tight min-w-0 truncate">27000</span>
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">Actual</span>
+                              </div>
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0">
+                                  <span
+                                    class="text-sm font-medium leading-tight min-w-0 truncate text-[var(--color-gray-1)]"
+                                    >40000</span
+                                  >
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">Target</span>
+                              </div>
+                              <div class="flex flex-col gap-[2px]">
+                                <div class="flex items-center gap-1 min-w-0 text-[var(--color-decent-red)]">
+                                  <span class="text-sm font-medium leading-tight min-w-0 truncate">-55%</span>
+                                  <i class="fa-solid fa-arrow-down text-[10px] shrink-0"></i>
+                                </div>
+                                <span class="text-[10px] text-[var(--color-gray-5)] truncate">MOM</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div></div
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Col-3 End -->
+
+      <!-- Col-3 -->
+      <div class="break-inside-avoid mb-4">
+        <!-- Base card -->
+        <div class="bg-[#f5f5f5] flex flex-col gap-4 p-4 rounded-2xl overflow-hidden relative mb-6">
+          <div data-part="decoration" class="radial-corner absolute z-0"></div>
+          <div class="z-1">
+            <div class="flex items-start justify-between">
+              <div class="flex gap-2 items-start flex-1 min-w-0">
+                <i
+                  data-part="icon"
+                  class="fa-regular fa-badge-dollar text-base mt-[2px] text-[var(--color-primary)]"
+                ></i>
+                <div class="min-w-0">
+                  <div
+                    data-part="title"
+                    class="text-sm break-words font-medium text-[var(--color-gray-1)] leading-tight clamp-2"
+                    >Churn: Prepaid</div
+                  >
+                </div>
+              </div>
+              <div data-more-title="Title" data-part="more" class="shrink-0 ml-2">
+                <button class="flex gap-1 items-center py-0.5 cursor-pointer bg-transparent border-0">
+                  <span class="text-[10px] font-medium text-[var(--color-gray-5)] leading-3 whitespace-nowrap"
+                    >More</span
+                  >
+                  <i class="fa-regular fa-chevron-right text-xs text-[var(--color-gray-6)]"></i>
+                </button>
+              </div>
+            </div>
+            <div data-part="slot" class="bg-white mt-4 rounded-2xl w-full overflow-hidden">
+              <div class="flex flex-col gap-4 p-4">
+                <!-- Block -->
+                <div class="flex flex-col gap-3">
+                  <div>
+                    <div
+                      data-part="title"
+                      class="text-sm break-words font-medium text-[var(--color-gray-1)] leading-5 clamp-2"
+                      >Total Churn</div
+                    >
+                    <div
+                      data-part="subtitle"
+                      class="text-xs break-words italic text-[var(--color-gray-5)] leading-4 clamp-2"
+                      >18 มีนาคม 2568 : 16:08 น.</div
+                    >
+                  </div>
+
+                  <!-- Row -->
+                  <div class="flex gap-4">
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium text-[var(--color-gray-6)]">N/A</p>
+                      <p class="text-xs text-[var(--color-gray-5)]">Actual Rate</p>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium text-[var(--color-gray-6)]">N/A</p>
+                      <p class="text-xs text-[var(--color-gray-5)]">MTD</p>
+                    </div>
+                  </div>
+
+                  <!-- Row -->
+                  <div class="flex gap-4">
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium text-[var(--color-gray-1)]">24,300</p>
+                      <p class="text-xs text-[var(--color-gray-5)]">Actual Sub</p>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-1 text-[var(--color-decent-red)]">
+                        <span class="text-sm font-medium">6.20%</span>
+                        <i class="fa-solid fa-arrow-up text-sm shrink-0"></i>
+                      </div>
+                      <p class="text-xs text-[var(--color-gray-5)]">MTD MOM</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Base card -->
+        <div class="bg-[#f5f5f5] flex flex-col gap-4 p-4 rounded-2xl overflow-hidden relative mb-6">
+          <div data-part="decoration" class="radial-corner absolute z-0"></div>
+          <div class="z-1">
+            <div class="flex items-start justify-between">
+              <div class="flex gap-2 items-start flex-1 min-w-0">
+                <i
+                  data-part="icon"
+                  class="fa-regular fa-badge-dollar text-base mt-[2px] text-[var(--color-primary)]"
+                ></i>
+                <div class="min-w-0">
+                  <div
+                    data-part="title"
+                    class="text-sm break-words font-medium text-[var(--color-gray-1)] leading-tight clamp-2"
+                    >Churn: Postpaid</div
+                  >
+                </div>
+              </div>
+              <div data-more-title="Title" data-part="more" class="shrink-0 ml-2">
+                <button class="flex gap-1 items-center py-0.5 cursor-pointer bg-transparent border-0">
+                  <span class="text-[10px] font-medium text-[var(--color-gray-5)] leading-3 whitespace-nowrap"
+                    >More</span
+                  >
+                  <i class="fa-regular fa-chevron-right text-xs text-[var(--color-gray-6)]"></i>
+                </button>
+              </div>
+            </div>
+            <div data-part="slot" class="bg-white mt-4 rounded-2xl w-full overflow-hidden">
+              <div class="flex flex-col gap-4 p-4">
+                <!-- Block -->
+                <div class="flex flex-col gap-3">
+                  <div>
+                    <div
+                      data-part="title"
+                      class="text-sm break-words font-medium text-[var(--color-gray-1)] leading-5 clamp-2"
+                      >Total Churn</div
+                    >
+                    <div
+                      data-part="subtitle"
+                      class="text-xs break-words italic text-[var(--color-gray-5)] leading-4 clamp-2"
+                      >18 มีนาคม 2568 : 16:08 น.</div
+                    >
+                  </div>
+
+                  <!-- Row -->
+                  <div class="flex gap-4">
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium text-[var(--color-gray-6)]">N/A</p>
+                      <p class="text-xs text-[var(--color-gray-5)]">Actual Rate</p>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium text-[var(--color-gray-6)]">N/A</p>
+                      <p class="text-xs text-[var(--color-gray-5)]">MTD</p>
+                    </div>
+                  </div>
+
+                  <!-- Row -->
+                  <div class="flex gap-4">
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium text-[var(--color-gray-1)]">24,300</p>
+                      <p class="text-xs text-[var(--color-gray-5)]">Actual Sub</p>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-1 text-[var(--color-decent-red)]">
+                        <span class="text-sm font-medium">6.20%</span>
+                        <i class="fa-solid fa-arrow-up text-sm shrink-0"></i>
+                      </div>
+                      <p class="text-xs text-[var(--color-gray-5)]">MTD MOM</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div data-map="" data-lat="13.6851839" data-lng="100.6087506" data-radius="500" class="w-full h-80 rounded-xl overflow-hidden mb-6"></div>
+      </div>
+      <!-- Col-3 End -->
+
+      <!-- DO NOTE REMOVE THIS BLOCK Last update SERVER replace for mobile end of all widget -->
+      <p class="text-sm leading-[1.43] tracking-tight text-[#9E9E9E] text-center whitespace-nowrap block md:hidden"
+        >อัปเดตล่าสุด {{homePageUpdatedAtFormatted}}</p
+      >
+    </main>
+  </body>
+</html>

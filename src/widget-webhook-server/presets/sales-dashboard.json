@@ -1,0 +1,26 @@
+{
+  "title": "Sales Performance Dashboard",
+  "lang": "en",
+  "widgets": [
+    {
+      "type": "baseContainer",
+      "title": "High-Level Insight",
+      "subtitle": "Month-to-date performance"
+    },
+    {
+      "type": "lineChart"
+    },
+    {
+      "type": "miniTable"
+    },
+    {
+      "type": "circular"
+    },
+    {
+      "type": "text",
+      "title": "Action Items",
+      "subtitle": "3 follow-ups for today",
+      "text": "1. Review Q4 pipeline with RTR team\n2. Confirm Modern Trade delivery schedule\n3. Approve student channel promotion plan"
+    }
+  ]
+}

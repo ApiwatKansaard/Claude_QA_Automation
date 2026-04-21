@@ -9,6 +9,31 @@ Automated E2E and API tests for the EkoAI platform using Playwright + TypeScript
 
 ## Recent changes
 
+**2026-04-21 — Widget Webhook Server + one-shot Scheduled Job factory**
+
+Stand up a full Scheduled Job demo (widget-composed HTML → live on the Eko
+homepage) with two commands:
+
+```bash
+# 1. Start the webhook server (port 6767)
+cd src/widget-webhook-server && npm install && npm start
+
+# 2. Create a scheduled job via API (job + callback key + preset wiring)
+node scripts/create-scheduler.mjs \
+  --copy-audience-from <existingJobId> \
+  scripts/configs/demo-sales-dashboard.json
+```
+
+- New: `src/widget-webhook-server/` — multi-preset Express server with
+  15 reusable widgets (Text, LineChart, Tabs, Carousel, etc.). Each preset
+  (JSON composition or raw HTML) gets its own webhook path and callback key.
+  Preview any preset at `http://localhost:6767/<preset>/preview`.
+- New: `scripts/create-scheduler.mjs` — one-shot job factory: POSTs
+  `/v1/scheduled-jobs`, generates the `scbk_` callback API key via
+  `POST /v1/scheduled-jobs/{id}/callback-api-key`, and writes the key into
+  the matching preset file so the webhook server picks it up automatically.
+- Details in [src/widget-webhook-server/README.md](src/widget-webhook-server/README.md).
+
 **2026-04-21 — Callback API contract migration (AE-14621 retest)**
 - Migrated all callback tests + mock server to the production contract per [Doc] Project Team Guide | Scheduled Job (Confluence 3528917005) and Tech Spec AE-14600.
 - **Path:** `/v1/scheduled-jobs/runs/callback` (was `/v1/scheduled-jobs/callback`)

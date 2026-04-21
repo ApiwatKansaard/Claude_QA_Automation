@@ -1,0 +1,974 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard — Mock Server</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/embla-carousel@8/embla-carousel.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root {
+        --color-primary: #00b40f;
+        --color-gray-1: #212121;
+        --color-gray-2: #424242;
+        --color-gray-3: #616161;
+        --color-gray-4: #757575;
+        --color-gray-5: #9e9e9e;
+        --color-gray-6: #bdbdbd;
+        --color-gray-8: #e5e5e5;
+        --color-gray-9: #f5f5f5;
+        --color-gray-10: #fafafa;
+        --base-card-bg: #f5f5f5;
+        --color-decent-green: #29cb72;
+        --color-decent-red: #ff5252;
+        --color-decent-yellow: #ffb400;
+        --color-decent-purple: #7c3aed;
+        --color-decent-pink: #e61e73;
+        --color-decent-gray: #bdbdbd;
+        --color-map-radius: #0f86fe;
+      }
+
+      body { font-family: ui-sans-serif, system-ui, sans-serif; background: var(--color-gray-10); color: var(--color-gray-1); }
+
+      .z-1 { z-index: 1; }
+
+      .clamp-2 {
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        display: -webkit-box;
+        overflow: hidden;
+      }
+
+      .radial-corner {
+        z-index: 0;
+        pointer-events: none;
+        display: block;
+        position: absolute;
+        top: 0;
+        right: 0;
+      }
+      .radial-corner::after {
+        content: "";
+        background-image: url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='200' cy='0' r='80' stroke='%23E0E0E0' fill='none' stroke-width='1.5'/%3E%3Ccircle cx='200' cy='0' r='110' stroke='%23E0E0E0' fill='none' stroke-width='1.5'/%3E%3Ccircle cx='200' cy='0' r='140' stroke='%23E0E0E0' fill='none' stroke-width='1.5'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-size: contain;
+        width: 200px;
+        height: 200px;
+        display: block;
+      }
+
+      .text-widget {
+        background-color: #fff;
+        background-image: linear-gradient(210deg, var(--text-bg, #fff) 0%, var(--text-bg, #fff) 100%);
+        color: var(--text-color, var(--color-gray-1));
+      }
+      @supports (color: color-mix(in lab, red, red)) {
+        .text-widget {
+          background-image: linear-gradient(
+            210deg,
+            color-mix(in srgb, var(--text-bg, #fff) 70%, transparent) 0%,
+            var(--text-bg, #fff) 100%
+          );
+        }
+      }
+
+      .more-drawer {
+        background: #fff;
+        border-radius: 1rem 1rem 0 0;
+        width: 100%;
+        max-height: calc(100vh - 60px);
+        bottom: 0;
+        left: 0;
+        right: 0;
+        overflow: hidden;
+      }
+      @media (min-width: 640px) {
+        .more-drawer {
+          background: var(--color-gray-10);
+          border-radius: 0;
+          width: 375px;
+          max-height: 100vh;
+          inset: 0 0 0 auto;
+        }
+      }
+
+      .fade-enter { transition: opacity 0.2s ease-out; }
+      .fade-enter-from { opacity: 0; }
+      .fade-enter-to { opacity: 1; }
+      .fade-leave { transition: opacity 0.15s ease-in; }
+      .fade-leave-from { opacity: 1; }
+      .fade-leave-to { opacity: 0; }
+
+      .sheet-enter { transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1); }
+      .sheet-enter-from { transform: translateY(100%); }
+      .sheet-enter-to { transform: translateY(0); }
+      .sheet-leave { transition: transform 0.25s ease-in; }
+      .sheet-leave-from { transform: translateY(0); }
+      .sheet-leave-to { transform: translateY(100%); }
+      @media (min-width: 640px) {
+        .sheet-enter-from { transform: translate(100%); }
+        .sheet-enter-to, .sheet-leave-from { transform: translate(0); }
+        .sheet-leave-to { transform: translate(100%); }
+      }
+    </style>
+
+    <script type="module">
+      /* ── circular doughnut charts ── */
+      function t(e = document) {
+        e.querySelectorAll(`[data-chart-circular]`).forEach((e) => {
+          let val = Number(e.dataset.value ?? 0),
+            wrap = e.closest(`[style*="--progress-color"]`),
+            color = wrap
+              ? getComputedStyle(wrap).getPropertyValue(`--progress-color`).trim()
+              : `#29CB72`,
+            existing = Chart.getChart(e);
+          existing && existing.destroy();
+          new Chart(e, {
+            type: `doughnut`,
+            data: {
+              datasets: [{
+                data: [val, 100 - val],
+                backgroundColor: [color, `#E0E0E0`],
+                borderWidth: 0,
+                borderRadius: [50, 0],
+              }],
+            },
+            options: {
+              cutout: `92%`,
+              rotation: 180,
+              circumference: 360,
+              plugins: { legend: { display: false }, tooltip: { enabled: false } },
+              animation: { duration: 800, easing: `easeInOutQuart` },
+            },
+          });
+        });
+      }
+
+      /* ── line charts ── */
+      function n(e = document) {
+        e.querySelectorAll(`canvas[data-chart-line]:not([data-chart-init])`).forEach((e) => {
+          let cfg = e.parentElement.querySelector(`script[data-chart-line-config]`);
+          if (!cfg) return;
+          e.setAttribute(`data-chart-init`, ``);
+          let data = JSON.parse(cfg.textContent),
+            existing = Chart.getChart(e);
+          existing && existing.destroy();
+          new Chart(e, {
+            type: data.type,
+            data: { labels: data.labels, datasets: data.datasets },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false }, tooltip: { enabled: true, mode: `index`, intersect: false } },
+              scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 9 }, color: `#9E9E9E` } },
+                y: {
+                  ticks: { font: { size: 9 }, color: `#9E9E9E` },
+                  grid: { color: `#E5E5E5`, lineWidth: 0.8 },
+                  border: { display: false },
+                },
+              },
+              interaction: { mode: `index`, intersect: false },
+              spanGaps: true,
+            },
+          });
+          let card = e.closest(`[data-chart-line-card]`),
+            legend = card && card.querySelector(`[data-part="legend"]`);
+          legend && (legend.innerHTML = data.datasets
+            .map((d) => `<div class="flex items-center gap-1.5"><span class="inline-block w-4 h-0.5 rounded-full" style="background:${d.borderColor}"></span><span class="text-[10px]" style="color:var(--color-gray-1)">${d.label}</span></div>`)
+            .join(``));
+        });
+      }
+
+      /* ── more drawer ── */
+      function l(e = document, back = null) {
+        e.querySelectorAll(`[data-more-title]:not([data-more-title-initialized])`).forEach((el) => {
+          el.setAttribute(`data-more-title-initialized`, ``);
+          let title = el.dataset.moreTitle ?? ``,
+            btn = el.querySelector(`button`),
+            tpl = el.querySelector(`template[data-more-content]`),
+            overlay = document.createElement(`div`);
+          overlay.className = `fixed inset-0 bg-black/40 z-40 md:hidden`;
+          overlay.style.display = `none`;
+          document.body.appendChild(overlay);
+
+          let drawer = document.createElement(`div`);
+          drawer.className = `more-drawer fixed shadow-xl z-50 flex flex-col`;
+          drawer.style.display = `none`;
+
+          let header = document.createElement(`div`);
+          header.className = `shrink-0 flex items-center gap-3 py-2 px-4`;
+          header.innerHTML = `
+            ${back ? `<button data-more-back class="flex items-center justify-center p-2 rounded-full border-0 cursor-pointer shrink-0" style="background:var(--color-gray-9)"><i class="fa-regular fa-arrow-left text-xl" style="color:var(--color-gray-4)"></i></button>` : ``}
+            <div class="flex-1 min-w-0 text-base font-semibold truncate" style="color:var(--color-gray-1)">${title}</div>
+            <button data-more-close class="flex items-center justify-center p-2 rounded-full border-0 cursor-pointer shrink-0" style="background:var(--color-gray-9)"><i class="fa-regular fa-xmark text-xl" style="color:var(--color-gray-4)"></i></button>
+          `;
+          drawer.appendChild(header);
+
+          if (tpl) {
+            let body = document.createElement(`div`);
+            body.className = `flex-1 overflow-y-auto px-6 pb-6`;
+            body.appendChild(tpl.content.cloneNode(true));
+            drawer.appendChild(body);
+          }
+          document.body.appendChild(drawer);
+
+          function enter(el, a, b, c) {
+            el.style.display = ``;
+            el.classList.add(a, b);
+            requestAnimationFrame(() => requestAnimationFrame(() => { el.classList.remove(b); el.classList.add(c); }));
+            let done = false;
+            function finish() { if (done) return; done = true; el.classList.remove(a, c); el.removeEventListener(`transitionend`, finish); }
+            el.addEventListener(`transitionend`, finish);
+            setTimeout(finish, 400);
+          }
+          function leave(el, a, b, c) {
+            if (getComputedStyle(el).display === `none`) { el.style.display = `none`; return; }
+            el.classList.add(a, b);
+            requestAnimationFrame(() => requestAnimationFrame(() => { el.classList.remove(b); el.classList.add(c); }));
+            let done = false;
+            function finish() { if (done) return; done = true; el.style.display = `none`; el.classList.remove(a, c); el.removeEventListener(`transitionend`, finish); }
+            el.addEventListener(`transitionend`, finish);
+            setTimeout(finish, 400);
+          }
+          function open() {
+            window.dispatchEvent(new CustomEvent(`close-all-drawers`));
+            enter(overlay, `fade-enter`, `fade-enter-from`, `fade-enter-to`);
+            enter(drawer, `sheet-enter`, `sheet-enter-from`, `sheet-enter-to`);
+            t(drawer); n(drawer);
+            l(drawer, close);
+          }
+          function close(goBack) {
+            leave(overlay, `fade-leave`, `fade-leave-from`, `fade-leave-to`);
+            leave(drawer, `sheet-leave`, `sheet-leave-from`, `sheet-leave-to`);
+            if (goBack && back) back();
+          }
+          btn && btn.addEventListener(`click`, open);
+          overlay.addEventListener(`click`, () => close(false));
+          drawer.querySelector(`[data-more-close]`).addEventListener(`click`, () => close(false));
+          let backBtn = drawer.querySelector(`[data-more-back]`);
+          backBtn && backBtn.addEventListener(`click`, () => close(true));
+          window.addEventListener(`close-all-drawers`, () => { if (drawer.style.display !== `none`) close(false); });
+        });
+      }
+
+      /* ── init ── */
+      document.addEventListener(`DOMContentLoaded`, () => { t(); n(); l(); });
+    </script>
+  </head>
+
+  <body class="min-h-screen p-4 sm:p-6 lg:p-8">
+
+    <!-- Header -->
+    <header class="max-w-[1000px] mx-auto mb-6 flex flex-row items-end justify-between gap-8">
+      <div class="flex flex-row items-center gap-4">
+        <div class="w-[54px] h-[54px] rounded-full flex items-center justify-center shrink-0" style="background:var(--color-primary)">
+          <i class="fa-solid fa-chart-line text-white text-xl"></i>
+        </div>
+        <div class="flex flex-col gap-0.5">
+          <h1 class="font-semibold text-xl leading-[1.6]" style="color:var(--color-gray-1)">Dashboard</h1>
+          <p class="text-sm leading-[1.43]" style="color:var(--color-gray-3)">Mock Server Overview</p>
+        </div>
+      </div>
+      <p class="text-sm leading-[1.43] whitespace-nowrap hidden md:block" style="color:var(--color-gray-5)">
+        Updated: April 9, 2026
+      </p>
+    </header>
+
+    <!-- Widgets grid -->
+    <main class="max-w-[1000px] mx-auto columns-1 sm:columns-2 md:columns-3 gap-6 pb-6">
+
+      <!-- ═══════════════ Col-1: Users ═══════════════ -->
+      <div class="break-inside-avoid mb-4">
+        <!-- Users card -->
+        <div class="flex flex-col gap-4 p-4 rounded-2xl overflow-hidden relative mb-6" style="background:var(--color-gray-9)">
+          <div data-part="decoration" class="radial-corner absolute z-0"></div>
+          <div class="z-1">
+            <div class="flex items-start justify-between">
+              <div class="flex gap-2 items-start flex-1 min-w-0">
+                <i class="fa-regular fa-users text-base mt-[2px]" style="color:var(--color-primary)"></i>
+                <div class="min-w-0">
+                  <div class="text-sm break-words font-medium leading-tight clamp-2" style="color:var(--color-gray-1)">Users</div>
+                </div>
+              </div>
+              <div data-more-title="Users" data-part="more" class="shrink-0 ml-2">
+                <button class="flex gap-1 items-center py-0.5 cursor-pointer bg-transparent border-0">
+                  <span class="text-[10px] font-medium leading-3 whitespace-nowrap" style="color:var(--color-gray-5)">More</span>
+                  <i class="fa-regular fa-chevron-right text-xs" style="color:var(--color-gray-6)"></i>
+                </button>
+                <template data-more-content="">
+                  <!-- User detail table -->
+                  <div class="bg-white rounded-2xl p-4 flex flex-col gap-3 mt-2">
+                    <div>
+                      <div class="text-sm font-medium" style="color:var(--color-gray-1)">All Users</div>
+                      <div class="text-xs italic" style="color:var(--color-gray-5)">3 total · 2 active · 1 inactive</div>
+                    </div>
+                    <table class="w-full text-sm border-collapse">
+                      <thead>
+                        <tr style="border-bottom:1px solid #E5E5E5">
+                          <th class="text-left py-2 text-xs font-semibold" style="color:var(--color-gray-5)">#</th>
+                          <th class="text-left py-2 text-xs font-semibold" style="color:var(--color-gray-5)">Name</th>
+                          <th class="text-left py-2 text-xs font-semibold" style="color:var(--color-gray-5)">Role</th>
+                          <th class="text-left py-2 text-xs font-semibold" style="color:var(--color-gray-5)">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr style="border-bottom:1px solid #F5F5F5">
+                          <td class="py-2 text-xs" style="color:var(--color-gray-5)">1</td>
+                          <td class="py-2 text-xs font-medium" style="color:var(--color-gray-1)">Alice Johnson</td>
+                          <td class="py-2"><span class="text-[10px] font-semibold px-2 py-0.5 rounded-full" style="background:#ede9fe;color:#7c3aed">Admin</span></td>
+                          <td class="py-2"><span class="text-[10px] font-semibold px-2 py-0.5 rounded-full" style="background:#dcfce7;color:#16a34a">Active</span></td>
+                        </tr>
+                        <tr style="border-bottom:1px solid #F5F5F5">
+                          <td class="py-2 text-xs" style="color:var(--color-gray-5)">2</td>
+                          <td class="py-2 text-xs font-medium" style="color:var(--color-gray-1)">Bob Smith</td>
+                          <td class="py-2"><span class="text-[10px] font-semibold px-2 py-0.5 rounded-full" style="background:#e0f2fe;color:#0369a1">User</span></td>
+                          <td class="py-2"><span class="text-[10px] font-semibold px-2 py-0.5 rounded-full" style="background:#dcfce7;color:#16a34a">Active</span></td>
+                        </tr>
+                        <tr>
+                          <td class="py-2 text-xs" style="color:var(--color-gray-5)">3</td>
+                          <td class="py-2 text-xs font-medium" style="color:var(--color-gray-1)">Carol White</td>
+                          <td class="py-2"><span class="text-[10px] font-semibold px-2 py-0.5 rounded-full" style="background:#e0f2fe;color:#0369a1">User</span></td>
+                          <td class="py-2"><span class="text-[10px] font-semibold px-2 py-0.5 rounded-full" style="background:#fee2e2;color:#dc2626">Inactive</span></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </template>
+              </div>
+            </div>
+
+            <!-- Slot -->
+            <div class="bg-white mt-4 rounded-2xl w-full overflow-hidden">
+              <div class="flex flex-col gap-4 p-4">
+                <div class="flex flex-col gap-3">
+                  <div>
+                    <div class="text-sm font-medium leading-5" style="color:var(--color-gray-1)">Active Users</div>
+                    <div class="text-xs italic" style="color:var(--color-gray-5)">3 registered accounts</div>
+                  </div>
+
+                  <!-- Circular chart: active rate -->
+                  <div style="--progress-color: var(--color-decent-green)" class="flex items-center gap-6">
+                    <div class="relative shrink-0 w-[100px] h-[100px] flex items-center justify-center">
+                      <canvas data-chart-circular="" data-value="67" width="100" height="100" class="absolute inset-0"></canvas>
+                      <div class="flex flex-col items-center gap-[3px] z-10 max-w-[72px]">
+                        <span class="text-[12px]" style="color:var(--color-gray-5)">Active</span>
+                        <span class="text-base font-medium leading-none" style="color:var(--color-gray-1)">67%</span>
+                        <span class="text-[9px] font-medium italic" style="color:var(--color-decent-green)">of total</span>
+                      </div>
+                    </div>
+                    <div class="flex-1 min-w-0 flex flex-col gap-4">
+                      <div class="flex flex-col gap-[2px]">
+                        <span class="text-xs" style="color:var(--color-gray-5)">Total Users</span>
+                        <span class="text-sm font-medium" style="color:var(--color-gray-1)">3</span>
+                      </div>
+                      <div class="flex flex-col gap-[2px]">
+                        <span class="text-xs" style="color:var(--color-gray-5)">Active</span>
+                        <span class="text-sm font-medium" style="color:var(--color-decent-green)">2</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Rows -->
+                  <div class="flex gap-4 pt-1" style="border-top:1px solid #F5F5F5">
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium" style="color:var(--color-gray-1)">2</p>
+                      <p class="text-xs" style="color:var(--color-gray-5)">Active</p>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium" style="color:var(--color-gray-6)">1</p>
+                      <p class="text-xs" style="color:var(--color-gray-5)">Inactive</p>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium" style="color:var(--color-decent-purple)">1</p>
+                      <p class="text-xs" style="color:var(--color-gray-5)">Admin</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Revenue summary card -->
+        <div class="flex flex-col gap-4 p-4 rounded-2xl overflow-hidden relative mb-6" style="background:var(--color-gray-9)">
+          <div data-part="decoration" class="radial-corner absolute z-0"></div>
+          <div class="z-1">
+            <div class="flex items-start gap-2">
+              <i class="fa-regular fa-circle-dollar text-base mt-[2px]" style="color:var(--color-primary)"></i>
+              <div class="text-sm font-medium leading-tight" style="color:var(--color-gray-1)">Revenue</div>
+            </div>
+            <div class="bg-white mt-4 rounded-2xl w-full overflow-hidden">
+              <div class="text-widget rounded-2xl p-5 w-full flex flex-col gap-1" style="--text-bg: var(--color-primary); --text-color: #ffffff">
+                <p class="text-xs" style="color:rgba(255,255,255,0.75)">All-time Total</p>
+                <p class="text-2xl font-semibold leading-tight">$179.92</p>
+                <p class="text-xs mt-1" style="color:rgba(255,255,255,0.75)">Across 3 orders</p>
+              </div>
+            </div>
+          </div>
+        </div>
+         <div class="break-inside-avoid mb-4">
+        <div class="bg-[#f5f5f5] flex flex-col gap-4 p-4 rounded-2xl overflow-hidden relative mb-6">
+  <div data-part="decoration" class="radial-corner absolute z-0"></div>
+  <div class="z-1">
+    <div class="flex items-start justify-between">
+      <div class="flex gap-2 items-start flex-1 min-w-0">
+        <i data-part="icon" class="fa-regular fa-bullseye-arrow text-base mt-[2px] text-[var(--color-primary)]"></i>
+        <div class="min-w-0">
+          <div data-part="title" class="text-sm break-words font-medium text-[var(--color-gray-1)] leading-tight clamp-2">Testing Title of Base Container Widget in 18.2 by Thu Hnin Aye Kyaw Soe Thu Hnin Aye Kyaw Soe</div>
+          <div data-part="subtitle" class="text-xs break-words italic text-[var(--color-gray-5)] leading-4 clamp-2">Testing subTitle of Base Container Widget in 18.2 by Thu Hnin Aye Kyaw Soe Thu Hnin Aye Kyaw Soe</div>
+        </div>
+      </div>
+      <div data-more-title="Title" data-part="more" class="shrink-0 ml-2">
+                <div data-part="level1" data-more-title="TOL" class="">
+                  <button class="flex gap-1 items-center py-0.5 cursor-pointer bg-transparent border-0">
+                    <span class="text-[10px] font-medium text-[var(--color-gray-5)] leading-3 whitespace-nowrap"
+                      >More</span
+                    >
+                    <i class="fa-regular fa-chevron-right text-xs text-[var(--color-gray-6)]"></i>
+                  </button>
+                  <template data-more-content="">
+                    <div data-chart-line-card="" class="bg-white rounded-2xl p-4 flex flex-col gap-3">
+                      <div class="flex items-start justify-between gap-2">
+                        <div class="min-w-0">
+                          <div data-part="title" class="text-sm font-medium text-[var(--color-gray-1)] truncate"
+                            >Sale Performance</div
+                          >
+                          <div data-part="subtitle" class="text-xs italic text-[var(--color-gray-5)] truncate"
+                            >Month to date trend</div
+                          >
+                        </div>
+                      </div>
+
+                      <div data-part="chart" class="relative" style="height: 160px">
+                        <canvas data-chart-line=""></canvas>
+
+                        <script type="application/json" data-chart-line-config="">
+                          {
+                            "type": "line",
+                            "labels": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
+                            "datasets": [
+                              {
+                                "label": "Mass",
+                                "borderColor": "#7C3AED",
+                                "backgroundColor": "#7C3AED",
+                                "borderDash": [6, 3],
+                                "borderWidth": 1.5,
+                                "pointRadius": 2.5,
+                                "pointHoverRadius": 4,
+                                "fill": false,
+                                "tension": 0.3,
+                                "data": [
+                                  800,
+                                  900,
+                                  1050,
+                                  1800,
+                                  1700,
+                                  1650,
+                                  1600,
+                                  1500,
+                                  null,
+                                  null,
+                                  null,
+                                  null,
+                                  null,
+                                  null,
+                                  null,
+                                  null,
+                                  null
+                                ]
+                              },
+                              {
+                                "label": "Migrant",
+                                "borderColor": "#E61E73",
+                                "backgroundColor": "#E61E73",
+                                "borderDash": [6, 3],
+                                "borderWidth": 1.5,
+                                "pointRadius": 2.5,
+                                "pointHoverRadius": 4,
+                                "fill": false,
+                                "tension": 0.3,
+                                "data": [
+                                  1000, 1100, 1200, 1500, 2000, 2100, 2200, 2300, 2800, 3300, 3500, 3700, 4000, 4100,
+                                  4200, 4300, 4500
+                                ]
+                              },
+                              {
+                                "label": "Tourist",
+                                "borderColor": "#FFB400",
+                                "backgroundColor": "#FFB400",
+                                "borderDash": [6, 3],
+                                "borderWidth": 1.5,
+                                "pointRadius": 2.5,
+                                "pointHoverRadius": 4,
+                                "fill": false,
+                                "tension": 0.3,
+                                "data": [
+                                  1100,
+                                  1200,
+                                  1400,
+                                  2000,
+                                  2400,
+                                  2800,
+                                  3500,
+                                  3700,
+                                  4000,
+                                  4500,
+                                  4700,
+                                  5000,
+                                  5300,
+                                  5100,
+                                  5200,
+                                  5500,
+                                  null
+                                ]
+                              },
+                              {
+                                "label": "Student",
+                                "borderColor": "#FF5252",
+                                "backgroundColor": "#FF5252",
+                                "borderDash": [6, 3],
+                                "borderWidth": 1.5,
+                                "pointRadius": 2.5,
+                                "pointHoverRadius": 4,
+                                "fill": false,
+                                "tension": 0.3,
+                                "data": [
+                                  1200,
+                                  1300,
+                                  1500,
+                                  2100,
+                                  2500,
+                                  2900,
+                                  3500,
+                                  3800,
+                                  4100,
+                                  4600,
+                                  4900,
+                                  5100,
+                                  5400,
+                                  5500,
+                                  5600,
+                                  5800,
+                                  null
+                                ]
+                              }
+                            ]
+                          }
+                        </script></div
+                      >
+
+                      <div data-part="legend" class="flex flex-wrap gap-3"></div>
+                    </div>
+
+                    <div data-map="" data-lat="13.7563" data-lng="100.5018" data-radius="500" class="w-full h-80 rounded-xl overflow-hidden mt-6 mb-6"></div>
+                  </template>
+                </div>
+    </div>
+    </div>
+  </div>
+    <div data-part="slot" class="bg-white mt-4 rounded-2xl w-full overflow-hidden"><div data-part="container" class="text-widget rounded-2xl p-5 w-full flex flex-col gap-1" style="--text-bg: #ffffff; --text-color: var(--color-gray-1);">
+  <div data-part="title" class="text-sm font-semibold leading-5 break-words clamp-2">Testing Base Container Widget in 18.2 By Thu Hnin Aye Kyaw Soe</div>
+  <div data-part="subtitle" class="text-xs leading-4 break-words clamp-2 opacity-60">Base Container Widget Subtitle 1 is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been updated and fixed.Base Container Widget Subtitle 1 is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been updated and fixed.</div>
+  <p data-part="text" class="text-sm leading-5 break-words whitespace-pre-line m-0 mt-2">2026 fashion trends emphasize a shift from minimalism to bold maximalism, featuring power glam, clashing prints, exaggerated proportions, and playful accessories, as seen across Spring/Summer 2026 runways from Paris, Milan, New York, and Resort collections.[1][2][3] Key themes include 1980s-inspired decadence, sheer layering, technical outerwear, and refined beachwear, balancing self-expression with effortless cool.2026 fashion trends emphasize a shift from minimalism to bold maximalism, featuring power glam, clashing prints, exaggerated proportions, and playful accessories, as seen across Spring/Summer 2026 runways from Paris, Milan, New York, and Resort collections.[1][2][3] Key themes include 1980s-inspired decadence, sheer layering, technical outerwear, and refined beachwear, balancing self-expression with effortless cool.</p>
+</div></div>
+  </div>
+</div>
+</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════ Col-2: Products ═══════════════ -->
+      <div class="break-inside-avoid mb-4">
+        <!-- Products card -->
+        <div class="flex flex-col gap-4 p-4 rounded-2xl overflow-hidden relative mb-6" style="background:var(--color-gray-9)">
+          <div data-part="decoration" class="radial-corner absolute z-0"></div>
+          <div class="z-1">
+            <div class="flex items-start justify-between">
+              <div class="flex gap-2 items-start flex-1 min-w-0">
+                <i class="fa-regular fa-box-open text-base mt-[2px]" style="color:var(--color-primary)"></i>
+                <div class="min-w-0">
+                  <div class="text-sm break-words font-medium leading-tight clamp-2" style="color:var(--color-gray-1)">Products</div>
+                </div>
+              </div>
+              <div data-more-title="Products" data-part="more" class="shrink-0 ml-2">
+                <button class="flex gap-1 items-center py-0.5 cursor-pointer bg-transparent border-0">
+                  <span class="text-[10px] font-medium leading-3 whitespace-nowrap" style="color:var(--color-gray-5)">More</span>
+                  <i class="fa-regular fa-chevron-right text-xs" style="color:var(--color-gray-6)"></i>
+                </button>
+                <template data-more-content="">
+                  <!-- Stock trend line chart -->
+                  <div data-chart-line-card="" class="bg-white rounded-2xl p-4 flex flex-col gap-3 mt-2">
+                    <div>
+                      <div class="text-sm font-medium" style="color:var(--color-gray-1)">Stock Levels</div>
+                      <div class="text-xs italic" style="color:var(--color-gray-5)">Units by product</div>
+                    </div>
+                    <div data-part="chart" class="relative" style="height:160px">
+                      <canvas data-chart-line=""></canvas>
+                      <script type="application/json" data-chart-line-config="">
+                        {
+                          "type": "bar",
+                          "labels": ["Widget Pro", "Gadget Plus", "Doohickey Max"],
+                          "datasets": [
+                            {
+                              "label": "Stock",
+                              "borderColor": "#00b40f",
+                              "backgroundColor": "rgba(0,180,15,0.15)",
+                              "data": [150, 80, 500],
+                              "fill": true,
+                              "tension": 0.4
+                            }
+                          ]
+                        }
+                      </script>
+                    </div>
+                    <div data-part="legend" class="flex flex-wrap gap-3"></div>
+                  </div>
+                  <!-- Product list -->
+                  <div class="bg-white rounded-2xl p-4 flex flex-col gap-3 mt-4">
+                    <div class="text-sm font-medium" style="color:var(--color-gray-1)">Product List</div>
+                    <table class="w-full text-sm border-collapse">
+                      <thead>
+                        <tr style="border-bottom:1px solid #E5E5E5">
+                          <th class="text-left py-2 text-xs font-semibold" style="color:var(--color-gray-5)">Name</th>
+                          <th class="text-left py-2 text-xs font-semibold" style="color:var(--color-gray-5)">Price</th>
+                          <th class="text-left py-2 text-xs font-semibold" style="color:var(--color-gray-5)">Stock</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr style="border-bottom:1px solid #F5F5F5">
+                          <td class="py-2 text-xs font-medium" style="color:var(--color-gray-1)">Widget Pro</td>
+                          <td class="py-2 text-xs" style="color:var(--color-gray-3)">$29.99</td>
+                          <td class="py-2 text-xs font-medium" style="color:var(--color-decent-green)">150</td>
+                        </tr>
+                        <tr style="border-bottom:1px solid #F5F5F5">
+                          <td class="py-2 text-xs font-medium" style="color:var(--color-gray-1)">Gadget Plus</td>
+                          <td class="py-2 text-xs" style="color:var(--color-gray-3)">$49.99</td>
+                          <td class="py-2 text-xs font-medium" style="color:var(--color-decent-yellow)">80</td>
+                        </tr>
+                        <tr>
+                          <td class="py-2 text-xs font-medium" style="color:var(--color-gray-1)">Doohickey Max</td>
+                          <td class="py-2 text-xs" style="color:var(--color-gray-3)">$9.99</td>
+                          <td class="py-2 text-xs font-medium" style="color:var(--color-decent-green)">500</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </template>
+              </div>
+            </div>
+
+            <!-- Slot -->
+            <div class="bg-white mt-4 rounded-2xl w-full overflow-hidden">
+              <div class="flex flex-col gap-4 p-4">
+                <div class="flex flex-col gap-3">
+                  <div>
+                    <div class="text-sm font-medium leading-5" style="color:var(--color-gray-1)">Inventory</div>
+                    <div class="text-xs italic" style="color:var(--color-gray-5)">3 products · 730 units total</div>
+                  </div>
+
+                  <!-- Circular chart: high-stock rate -->
+                  <div style="--progress-color: #3b82f6" class="flex items-center gap-6">
+                    <div class="relative shrink-0 w-[100px] h-[100px] flex items-center justify-center">
+                      <canvas data-chart-circular="" data-value="89" width="100" height="100" class="absolute inset-0"></canvas>
+                      <div class="flex flex-col items-center gap-[3px] z-10 max-w-[72px]">
+                        <span class="text-[12px]" style="color:var(--color-gray-5)">In Stock</span>
+                        <span class="text-base font-medium leading-none" style="color:var(--color-gray-1)">89%</span>
+                        <span class="text-[9px] font-medium italic" style="color:#3b82f6">healthy</span>
+                      </div>
+                    </div>
+                    <div class="flex-1 min-w-0 flex flex-col gap-4">
+                      <div class="flex flex-col gap-[2px]">
+                        <span class="text-xs" style="color:var(--color-gray-5)">Electronics</span>
+                        <span class="text-sm font-medium" style="color:var(--color-gray-1)">2 items</span>
+                      </div>
+                      <div class="flex flex-col gap-[2px]">
+                        <span class="text-xs" style="color:var(--color-gray-5)">Accessories</span>
+                        <span class="text-sm font-medium" style="color:var(--color-gray-1)">1 item</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Rows -->
+                  <div class="flex gap-4 pt-1" style="border-top:1px solid #F5F5F5">
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium" style="color:var(--color-gray-1)">$29.99</p>
+                      <p class="text-xs" style="color:var(--color-gray-5)">Min Price</p>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium" style="color:var(--color-gray-1)">$49.99</p>
+                      <p class="text-xs" style="color:var(--color-gray-5)">Max Price</p>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium" style="color:var(--color-gray-1)">730</p>
+                      <p class="text-xs" style="color:var(--color-gray-5)">Total Units</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category breakdown card -->
+        <div class="flex flex-col gap-4 p-4 rounded-2xl overflow-hidden relative mb-6" style="background:var(--color-gray-9)">
+          <div data-part="decoration" class="radial-corner absolute z-0"></div>
+          <div class="z-1">
+            <div class="flex items-start gap-2">
+              <i class="fa-regular fa-layer-group text-base mt-[2px]" style="color:var(--color-primary)"></i>
+              <div class="text-sm font-medium leading-tight" style="color:var(--color-gray-1)">Category Breakdown</div>
+            </div>
+            <div class="bg-white mt-4 rounded-2xl w-full overflow-hidden">
+              <div class="flex flex-col gap-4 p-4">
+                <!-- Electronics -->
+                <div>
+                  <div class="flex justify-between text-xs mb-1">
+                    <span style="color:var(--color-gray-4)">Electronics</span>
+                    <span class="font-semibold" style="color:var(--color-gray-1)">2 items (67%)</span>
+                  </div>
+                  <div class="rounded-full h-2 overflow-hidden" style="background:#E5E5E5">
+                    <div class="h-full rounded-full" style="width:67%;background:#3b82f6"></div>
+                  </div>
+                </div>
+                <!-- Accessories -->
+                <div>
+                  <div class="flex justify-between text-xs mb-1">
+                    <span style="color:var(--color-gray-4)">Accessories</span>
+                    <span class="font-semibold" style="color:var(--color-gray-1)">1 item (33%)</span>
+                  </div>
+                  <div class="rounded-full h-2 overflow-hidden" style="background:#E5E5E5">
+                    <div class="h-full rounded-full" style="width:33%;background:#a855f7"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════ Col-3: Orders ═══════════════ -->
+      <div class="break-inside-avoid mb-4">
+        <!-- Orders card -->
+        <div class="flex flex-col gap-4 p-4 rounded-2xl overflow-hidden relative mb-6" style="background:var(--color-gray-9)">
+          <div data-part="decoration" class="radial-corner absolute z-0"></div>
+          <div class="z-1">
+            <div class="flex items-start justify-between">
+              <div class="flex gap-2 items-start flex-1 min-w-0">
+                <i class="fa-regular fa-cart-shopping text-base mt-[2px]" style="color:var(--color-primary)"></i>
+                <div class="min-w-0">
+                  <div class="text-sm break-words font-medium leading-tight clamp-2" style="color:var(--color-gray-1)">Orders</div>
+                </div>
+              </div>
+              <div data-more-title="Orders" data-part="more" class="shrink-0 ml-2">
+                <button class="flex gap-1 items-center py-0.5 cursor-pointer bg-transparent border-0">
+                  <span class="text-[10px] font-medium leading-3 whitespace-nowrap" style="color:var(--color-gray-5)">More</span>
+                  <i class="fa-regular fa-chevron-right text-xs" style="color:var(--color-gray-6)"></i>
+                </button>
+                <template data-more-content="">
+                  <!-- Revenue trend line chart -->
+                  <div data-chart-line-card="" class="bg-white rounded-2xl p-4 flex flex-col gap-3 mt-2">
+                    <div>
+                      <div class="text-sm font-medium" style="color:var(--color-gray-1)">Revenue per Order</div>
+                      <div class="text-xs italic" style="color:var(--color-gray-5)">Order total in USD</div>
+                    </div>
+                    <div data-part="chart" class="relative" style="height:160px">
+                      <canvas data-chart-line=""></canvas>
+                      <script type="application/json" data-chart-line-config="">
+                        {
+                          "type": "line",
+                          "labels": ["#1", "#2", "#3"],
+                          "datasets": [
+                            {
+                              "label": "Revenue",
+                              "borderColor": "#00b40f",
+                              "backgroundColor": "rgba(0,180,15,0.1)",
+                              "data": [99.98, 29.99, 49.95],
+                              "fill": true,
+                              "tension": 0.4
+                            }
+                          ]
+                        }
+                      </script>
+                    </div>
+                    <div data-part="legend" class="flex flex-wrap gap-3"></div>
+                  </div>
+                  <!-- Order detail table -->
+                  <div class="bg-white rounded-2xl p-4 flex flex-col gap-3 mt-4">
+                    <div class="text-sm font-medium" style="color:var(--color-gray-1)">Order List</div>
+                    <table class="w-full text-sm border-collapse">
+                      <thead>
+                        <tr style="border-bottom:1px solid #E5E5E5">
+                          <th class="text-left py-2 text-xs font-semibold" style="color:var(--color-gray-5)">#</th>
+                          <th class="text-left py-2 text-xs font-semibold" style="color:var(--color-gray-5)">User</th>
+                          <th class="text-left py-2 text-xs font-semibold" style="color:var(--color-gray-5)">Total</th>
+                          <th class="text-left py-2 text-xs font-semibold" style="color:var(--color-gray-5)">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr style="border-bottom:1px solid #F5F5F5">
+                          <td class="py-2 text-xs" style="color:var(--color-gray-5)">1</td>
+                          <td class="py-2 text-xs" style="color:var(--color-gray-3)">Alice</td>
+                          <td class="py-2 text-xs font-medium" style="color:var(--color-gray-1)">$99.98</td>
+                          <td class="py-2"><span class="text-[10px] font-semibold px-2 py-0.5 rounded-full" style="background:#dcfce7;color:#16a34a">Delivered</span></td>
+                        </tr>
+                        <tr style="border-bottom:1px solid #F5F5F5">
+                          <td class="py-2 text-xs" style="color:var(--color-gray-5)">2</td>
+                          <td class="py-2 text-xs" style="color:var(--color-gray-3)">Bob</td>
+                          <td class="py-2 text-xs font-medium" style="color:var(--color-gray-1)">$29.99</td>
+                          <td class="py-2"><span class="text-[10px] font-semibold px-2 py-0.5 rounded-full" style="background:#fef9c3;color:#ca8a04">Pending</span></td>
+                        </tr>
+                        <tr>
+                          <td class="py-2 text-xs" style="color:var(--color-gray-5)">3</td>
+                          <td class="py-2 text-xs" style="color:var(--color-gray-3)">Alice</td>
+                          <td class="py-2 text-xs font-medium" style="color:var(--color-gray-1)">$49.95</td>
+                          <td class="py-2"><span class="text-[10px] font-semibold px-2 py-0.5 rounded-full" style="background:#dbeafe;color:#1d4ed8">Shipped</span></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </template>
+              </div>
+            </div>
+
+            <!-- Slot -->
+            <div class="bg-white mt-4 rounded-2xl w-full overflow-hidden">
+              <div class="flex flex-col gap-4 p-4">
+                <div class="flex flex-col gap-3">
+                  <div>
+                    <div class="text-sm font-medium leading-5" style="color:var(--color-gray-1)">Order Status</div>
+                    <div class="text-xs italic" style="color:var(--color-gray-5)">3 orders · $179.92 total revenue</div>
+                  </div>
+
+                  <!-- Circular chart: delivery rate -->
+                  <div style="--progress-color: #22c55e" class="flex items-center gap-6">
+                    <div class="relative shrink-0 w-[100px] h-[100px] flex items-center justify-center">
+                      <canvas data-chart-circular="" data-value="33" width="100" height="100" class="absolute inset-0"></canvas>
+                      <div class="flex flex-col items-center gap-[3px] z-10 max-w-[72px]">
+                        <span class="text-[12px]" style="color:var(--color-gray-5)">Delivered</span>
+                        <span class="text-base font-medium leading-none" style="color:var(--color-gray-1)">33%</span>
+                        <span class="text-[9px] font-medium italic" style="color:#22c55e">of total</span>
+                      </div>
+                    </div>
+                    <div class="flex-1 min-w-0 flex flex-col gap-4">
+                      <div class="flex flex-col gap-[2px]">
+                        <span class="text-xs" style="color:var(--color-gray-5)">Total Orders</span>
+                        <span class="text-sm font-medium" style="color:var(--color-gray-1)">3</span>
+                      </div>
+                      <div class="flex flex-col gap-[2px]">
+                        <span class="text-xs" style="color:var(--color-gray-5)">Total Revenue</span>
+                        <span class="text-sm font-medium" style="color:var(--color-gray-1)">$179.92</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Status rows -->
+                  <div class="flex gap-4 pt-1" style="border-top:1px solid #F5F5F5">
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-1">
+                        <span class="inline-block w-2 h-2 rounded-full shrink-0" style="background:#22c55e"></span>
+                        <p class="text-sm font-medium" style="color:var(--color-gray-1)">1</p>
+                      </div>
+                      <p class="text-xs" style="color:var(--color-gray-5)">Delivered</p>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-1">
+                        <span class="inline-block w-2 h-2 rounded-full shrink-0" style="background:#3b82f6"></span>
+                        <p class="text-sm font-medium" style="color:var(--color-gray-1)">1</p>
+                      </div>
+                      <p class="text-xs" style="color:var(--color-gray-5)">Shipped</p>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-1">
+                        <span class="inline-block w-2 h-2 rounded-full shrink-0" style="background:#f59e0b"></span>
+                        <p class="text-sm font-medium" style="color:var(--color-gray-1)">1</p>
+                      </div>
+                      <p class="text-xs" style="color:var(--color-gray-5)">Pending</p>
+                    </div>
+                  </div>
+                  <!-- Revenue rows -->
+                  <div class="flex gap-4" style="border-top:1px solid #F5F5F5; padding-top:0.75rem">
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium" style="color:var(--color-gray-1)">$99.98</p>
+                      <p class="text-xs" style="color:var(--color-gray-5)">Delivered</p>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium" style="color:var(--color-gray-1)">$49.95</p>
+                      <p class="text-xs" style="color:var(--color-gray-5)">Shipped</p>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium" style="color:var(--color-gray-6)">$29.99</p>
+                      <p class="text-xs" style="color:var(--color-gray-5)">Pending</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MTD MOM card -->
+        <div class="flex flex-col gap-4 p-4 rounded-2xl overflow-hidden relative mb-6" style="background:var(--color-gray-9)">
+          <div data-part="decoration" class="radial-corner absolute z-0"></div>
+          <div class="z-1">
+            <div class="flex items-start gap-2">
+              <i class="fa-regular fa-chart-bar text-base mt-[2px]" style="color:var(--color-primary)"></i>
+              <div class="text-sm font-medium leading-tight" style="color:var(--color-gray-1)">Order Status Breakdown</div>
+            </div>
+            <div class="bg-white mt-4 rounded-2xl w-full overflow-hidden">
+              <div class="flex flex-col gap-4 p-4">
+                <!-- Delivered -->
+                <div>
+                  <div class="flex justify-between text-xs mb-1">
+                    <span style="color:var(--color-gray-4)">Delivered</span>
+                    <span class="font-semibold" style="color:var(--color-gray-1)">1 (33%)</span>
+                  </div>
+                  <div class="rounded-full h-2 overflow-hidden" style="background:#E5E5E5">
+                    <div class="h-full rounded-full" style="width:33%;background:#22c55e"></div>
+                  </div>
+                </div>
+                <!-- Shipped -->
+                <div>
+                  <div class="flex justify-between text-xs mb-1">
+                    <span style="color:var(--color-gray-4)">Shipped</span>
+                    <span class="font-semibold" style="color:var(--color-gray-1)">1 (33%)</span>
+                  </div>
+                  <div class="rounded-full h-2 overflow-hidden" style="background:#E5E5E5">
+                    <div class="h-full rounded-full" style="width:33%;background:#3b82f6"></div>
+                  </div>
+                </div>
+                <!-- Pending -->
+                <div>
+                  <div class="flex justify-between text-xs mb-1">
+                    <span style="color:var(--color-gray-4)">Pending</span>
+                    <span class="font-semibold" style="color:var(--color-gray-1)">1 (33%)</span>
+                  </div>
+                  <div class="rounded-full h-2 overflow-hidden" style="background:#E5E5E5">
+                    <div class="h-full rounded-full" style="width:33%;background:#f59e0b"></div>
+                  </div>
+                </div>
+                <!-- Cancelled -->
+                <div>
+                  <div class="flex justify-between text-xs mb-1">
+                    <span style="color:var(--color-gray-4)">Cancelled</span>
+                    <span class="font-semibold" style="color:var(--color-gray-6)">0 (0%)</span>
+                  </div>
+                  <div class="rounded-full h-2 overflow-hidden" style="background:#E5E5E5">
+                    <div class="h-full rounded-full" style="width:0%;background:#ef4444"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DO NOTE REMOVE THIS BLOCK Last update SERVER replace for mobile end of all widget -->
+      <p class="text-sm leading-[1.43] tracking-tight text-[#9E9E9E] text-center whitespace-nowrap block md:hidden">Latest update {{homePageUpdatedAtFormatted}}</p>
+    </main>
+  </body>
+</html>

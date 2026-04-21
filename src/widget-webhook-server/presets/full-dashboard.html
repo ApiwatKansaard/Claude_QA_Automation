@@ -1,0 +1,22 @@
+<!-- This preset is the original complete dashboard from widget-webhook folder.
+     Served as-is (only {{token}} substitution). -->
+<!-- Paste/replace this file with any custom full-page HTML you want the webhook
+     to send back. Import tokens are replaced by EkoAI at getLatest time:
+     {{displayName}}, {{homePageUpdatedAtFormatted}}, {{networkThemeColor}}, etc. -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Morning Brief</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>:root { --color-primary: {{networkThemeColor}}; }</style>
+</head>
+<body class="bg-gray-50 p-6">
+  <div class="max-w-2xl mx-auto bg-white rounded-2xl p-6 shadow-sm">
+    <h1 class="text-2xl font-bold text-gray-900">Good morning {{displayName}}</h1>
+    <p class="text-sm text-gray-500 mt-1">Updated {{homePageUpdatedAtFormatted}}</p>
+    <p class="mt-4 text-gray-700">Drop a richer page here — charts, widgets, anything renderable in the Eko webview will work.</p>
+  </div>
+</body>
+</html>

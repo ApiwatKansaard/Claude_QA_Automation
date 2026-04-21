@@ -1,0 +1,21 @@
+{
+  "name": "QA Widget Demo — Sales Dashboard",
+  "description": "Created by scripts/create-scheduler.mjs — sends composed sales dashboard HTML to the Eko homepage",
+  "schedule": {
+    "_note": "dtstart must be UTC in basic format YYYYMMDDTHHmmssZ; rrule is standard iCal",
+    "dtstart": "20260422T020000Z",
+    "rrule": "FREQ=DAILY;BYHOUR=9;BYMINUTE=0"
+  },
+  "audience": {
+    "_note": "Fill with Eko platform user IDs, or use --copy-audience-from <existingJobId> flag",
+    "users": [],
+    "groups": []
+  },
+  "webhook": {
+    "_note": "publicBaseUrl = ngrok or any public URL pointing to the widget webhook server. Preset controls which HTML gets sent.",
+    "publicBaseUrl": "https://your-ngrok-subdomain.ngrok-free.app",
+    "preset": "sales-dashboard",
+    "processApiKey": "widget-webhook-secret",
+    "timeoutSeconds": 60
+  }
+}

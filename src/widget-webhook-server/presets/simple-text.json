@@ -1,0 +1,12 @@
+{
+  "title": "Daily Summary",
+  "lang": "en",
+  "widgets": [
+    {
+      "type": "text",
+      "title": "Hello {{displayName}}",
+      "subtitle": "Updated {{homePageUpdatedAtFormatted}}",
+      "text": "This is a minimal text-only morning brief. Great for quick announcements and simple daily reminders."
+    }
+  ]
+}

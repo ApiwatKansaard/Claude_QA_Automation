@@ -1,0 +1,14 @@
+{
+  "title": "Morning Brief",
+  "lang": "en",
+  "widgets": [
+    {
+      "type": "text",
+      "title": "Good Morning {{displayName}}",
+      "subtitle": "Updated {{homePageUpdatedAtFormatted}}",
+      "text": "Here is your daily brief for the team. Numbers below reflect yesterday's performance across all channels."
+    },
+    { "type": "lineChart" },
+    { "type": "tabs" }
+  ]
+}
