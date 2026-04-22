@@ -17,6 +17,8 @@ set -euo pipefail
 
 PORT="${PORT:-6767}"
 NGROK_API_PORT="${NGROK_API_PORT:-4040}"
+# Static ngrok domain (free tier reserved domain). Override via env if needed.
+NGROK_DOMAIN="${NGROK_DOMAIN:-gecko-evolved-buzzard.ngrok-free.app}"
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 WEBHOOK_DIR="$REPO_ROOT/src/widget-webhook-server"
 
@@ -56,9 +58,9 @@ for _ in $(seq 1 20); do
   sleep 0.25
 done
 
-# ── Start ngrok ───────────────────────────────────────────────────────────────
-echo "▶ starting ngrok tunnel"
-ngrok http "$PORT" --log stdout > "/tmp/ngrok.log" 2>&1 &
+# ── Start ngrok with static domain ────────────────────────────────────────────
+echo "▶ starting ngrok tunnel on static domain $NGROK_DOMAIN"
+ngrok http "$PORT" --url "$NGROK_DOMAIN" --log stdout > "/tmp/ngrok.log" 2>&1 &
 NGROK_PID=$!
 
 # Poll ngrok API for public URL (max 15s)
