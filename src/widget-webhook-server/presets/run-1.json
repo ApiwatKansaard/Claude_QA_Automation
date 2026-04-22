@@ -1,0 +1,35 @@
+{
+  "title": "Sharp_Test — Run 1",
+  "lang": "en",
+  "_generatedBy": "scripts/demo-run.mjs",
+  "_generatedAt": "2026-04-22T02:59:37.961Z",
+  "_runNumber": 1,
+  "widgets": [
+    {
+      "type": "text",
+      "title": "Hello {{displayName}} — Run #1",
+      "subtitle": "Updated {{homePageUpdatedAtFormatted}}",
+      "text": "Auto-generated brief for run #1. Composed at 2026-04-22T02:59:37.961Z with widgets: text, baseContainer, lineChart, circular, tags, carousel, miniTable."
+    },
+    {
+      "type": "baseContainer",
+      "title": "Run #1 — Key Metrics",
+      "subtitle": "Randomly composed from 7 widgets"
+    },
+    {
+      "type": "lineChart"
+    },
+    {
+      "type": "circular"
+    },
+    {
+      "type": "tags"
+    },
+    {
+      "type": "carousel"
+    },
+    {
+      "type": "miniTable"
+    }
+  ]
+}

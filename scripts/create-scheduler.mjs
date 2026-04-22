@@ -36,17 +36,66 @@ const REPO_ROOT = resolve(__dirname, "..");
 
 // ── Parse args ────────────────────────────────────────────────────────────────
 const args = process.argv.slice(2);
-const copyAudienceIdx = args.indexOf("--copy-audience-from");
-const copyAudienceFromJobId = copyAudienceIdx !== -1 ? args[copyAudienceIdx + 1] : null;
-if (copyAudienceIdx !== -1) args.splice(copyAudienceIdx, 2);
+function popFlag(name) {
+  const i = args.indexOf(name);
+  if (i === -1) return null;
+  const v = args[i + 1];
+  args.splice(i, 2);
+  return v;
+}
+const copyAudienceFromJobId = popFlag("--copy-audience-from");
+const publicUrlArg = popFlag("--public-url");
+const scheduleInArg = popFlag("--schedule-in"); // e.g. "2m" = run 2 minutes from now
 
 const configPath = args[0];
 if (!configPath) {
-  console.error("Usage: node scripts/create-scheduler.mjs [--copy-audience-from <jobId>] <config.json>");
+  console.error("Usage: node scripts/create-scheduler.mjs [options] <config.json>");
+  console.error("");
+  console.error("Options:");
+  console.error("  --public-url <url>          Override webhook.publicBaseUrl (e.g. ngrok URL)");
+  console.error("  --copy-audience-from <id>   Clone audience from an existing job");
+  console.error("  --schedule-in <duration>    Schedule run N from now (e.g. 2m, 30s, 1h)");
+  console.error("");
+  console.error("Tip: if .ngrok-url exists in repo root (written by start-demo.sh),");
+  console.error("     its URL is used automatically when --public-url is omitted.");
   process.exit(2);
 }
 
 const config = JSON.parse(readFileSync(resolve(configPath), "utf8"));
+
+// ── Auto-pick ngrok URL if not explicit ───────────────────────────────────────
+if (publicUrlArg) {
+  config.webhook = config.webhook || {};
+  config.webhook.publicBaseUrl = publicUrlArg;
+} else {
+  const ngrokFile = join(REPO_ROOT, ".ngrok-url");
+  if (existsSync(ngrokFile)) {
+    const url = readFileSync(ngrokFile, "utf8").trim();
+    if (url && !config.webhook?.publicBaseUrl?.startsWith("https://")
+        || config.webhook?.publicBaseUrl?.includes("placeholder")) {
+      config.webhook = config.webhook || {};
+      config.webhook.publicBaseUrl = url;
+      console.log(`[url] picked up .ngrok-url → ${url}`);
+    }
+  }
+}
+
+// ── Optional: override schedule to fire soon ──────────────────────────────────
+if (scheduleInArg) {
+  const m = /^(\d+)([smh])$/.exec(scheduleInArg);
+  if (!m) throw new Error(`--schedule-in must be like 2m, 30s, 1h (got ${scheduleInArg})`);
+  const secs = parseInt(m[1], 10) * { s: 1, m: 60, h: 3600 }[m[2]];
+  const fire = new Date(Date.now() + secs * 1000);
+  const pad = n => String(n).padStart(2, "0");
+  const dtstart =
+    `${fire.getUTCFullYear()}${pad(fire.getUTCMonth() + 1)}${pad(fire.getUTCDate())}T` +
+    `${pad(fire.getUTCHours())}${pad(fire.getUTCMinutes())}${pad(fire.getUTCSeconds())}Z`;
+  config.schedule = {
+    dtstart,
+    rrule: `FREQ=MINUTELY;INTERVAL=${Math.max(1, Math.ceil(secs / 60))};COUNT=1`,
+  };
+  console.log(`[schedule] --schedule-in ${scheduleInArg} → dtstart=${dtstart} (≈ ${fire.toISOString()})`);
+}
 
 // ── Load env ──────────────────────────────────────────────────────────────────
 const API_BASE = process.env.API_BASE_URL || "https://ekoai.staging.ekoapp.com";

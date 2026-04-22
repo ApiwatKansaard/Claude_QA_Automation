@@ -1,0 +1,41 @@
+{
+  "title": "QA Team Daily Standup",
+  "lang": "en",
+  "widgets": [
+    {
+      "type": "text",
+      "title": "\u0e2a\u0e27\u0e31\u0e2a\u0e14\u0e35\u0e15\u0e2d\u0e19\u0e40\u0e0a\u0e49\u0e32 {{displayName}} \ud83d\udc4b",
+      "subtitle": "Updated {{homePageUpdatedAtFormatted}}",
+      "text": "Daily QA briefing \u2014 test runs, pipeline health, and what needs attention today."
+    },
+    {
+      "type": "baseContainer",
+      "title": "Automation Health",
+      "subtitle": "Last 7 sprint runs"
+    },
+    {
+      "type": "lineChart"
+    },
+    {
+      "type": "miniTable"
+    },
+    {
+      "type": "tabs"
+    },
+    {
+      "type": "tags"
+    },
+    {
+      "type": "text",
+      "title": "\ud83c\udfaf Today's Focus",
+      "subtitle": "3 priorities",
+      "text": "1. Close out AE-14621 retest (verify 1MB limit with Ae)\n2. Review EGT 18.2 regression suite \u2014 59/63 passing\n3. Sync automation schema with Tech Spec AE-14600"
+    },
+    {
+      "type": "collapsible"
+    },
+    {
+      "type": "markdown"
+    }
+  ]
+}

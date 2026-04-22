@@ -1,0 +1,22 @@
+{
+  "name": "QA Team Daily \u2014 Widget Demo",
+  "description": "Daily morning brief for the QA team. HTML composed from 9 widgets by widget-webhook-server.",
+  "schedule": {
+    "_note": "Overridden by --schedule-in when running demo. Default = daily 09:00 ICT (02:00 UTC).",
+    "dtstart": "20260422T020000Z",
+    "rrule": "FREQ=DAILY;BYHOUR=9;BYMINUTE=0"
+  },
+  "audience": {
+    "users": [
+      "689d65d767fc177d804b1318"
+    ],
+    "groups": []
+  },
+  "webhook": {
+    "_note": "publicBaseUrl auto-picked from .ngrok-url when start-demo.sh is running",
+    "publicBaseUrl": "https://placeholder.ngrok-free.app",
+    "preset": "qa-team-daily",
+    "processApiKey": "widget-webhook-secret",
+    "timeoutSeconds": 60
+  }
+}

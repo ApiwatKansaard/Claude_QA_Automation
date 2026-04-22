@@ -1,31 +1,30 @@
-# Dependencies
-node_modules/
 
-# Build output
-dist/
-
-# Test artifacts
-test-results/
-reports/
-playwright-report/
-playwright/.auth/
-
-# Environment — NEVER commit credentials
-.env
-.env.local
-*.env
 !.env.example
 !environments/.env.*
-
-# OS
-.DS_Store
-Thumbs.db
-
-# IDE
-.idea/
-*.swp
-*.swo
-
 # Backup / deleted files
-*.bak
+# Build output
+# Dependencies
+# Environment — NEVER commit credentials
+# IDE
+# OS
+# Test artifacts
 *.DELETED
+*.bak
+*.env
+*.swo
+*.swp
+.DS_Store
+.env
+.env.*
+.env.local
+.idea/
+.ngrok-url
+Thumbs.db
+dist/
+node_modules/
+playwright-report/
+playwright/.auth/
+playwright/.auth/*.json
+reports/
+src/widget-webhook-server/snapshots/
+test-results/

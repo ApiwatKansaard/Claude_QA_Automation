@@ -26,33 +26,40 @@
  */
 import express from "express";
 import axios from "axios";
-import { readFileSync, readdirSync, existsSync } from "fs";
+import { createHash } from "crypto";
+import { readFileSync, readdirSync, existsSync, mkdirSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { composeFromPreset, listAvailableWidgets } from "./lib/compose.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PRESETS_DIR = join(__dirname, "presets");
+const SNAPSHOTS_DIR = join(__dirname, "snapshots");
+if (!existsSync(SNAPSHOTS_DIR)) mkdirSync(SNAPSHOTS_DIR, { recursive: true });
 
 const CALLBACK_BASE_URL = process.env.CALLBACK_BASE_URL || "https://ekoai.staging.ekoapp.com";
 const CALLBACK_PATH = "/v1/scheduled-jobs/runs/callback";
 const CALLBACK_DELAY_MS = parseInt(process.env.CALLBACK_DELAY_MS || "2000", 10);
 const DEFAULT_CALLBACK_API_KEY = process.env.WEBHOOK_CALLBACK_API_KEY || "";
 
-// ── Load all presets at startup ──────────────────────────────────────────────
-const presets = {};
-for (const file of readdirSync(PRESETS_DIR)) {
-  if (file.startsWith(".")) continue;
-  const [name, ext] = [file.replace(/\.(json|html?)$/i, ""), file.split(".").pop()];
-  if (ext === "json") {
-    presets[name] = JSON.parse(readFileSync(join(PRESETS_DIR, file), "utf8"));
-  } else if (ext === "html" || ext === "htm") {
-    presets[name] = {
-      title: name.replace(/[-_]/g, " "),
-      html: readFileSync(join(PRESETS_DIR, file), "utf8"),
-    };
+// ── Load presets from disk (hot-reloaded on every webhook to pick up late-added api keys) ──
+function loadPresets() {
+  const map = {};
+  for (const file of readdirSync(PRESETS_DIR)) {
+    if (file.startsWith(".")) continue;
+    const [name, ext] = [file.replace(/\.(json|html?)$/i, ""), file.split(".").pop()];
+    if (ext === "json") {
+      map[name] = JSON.parse(readFileSync(join(PRESETS_DIR, file), "utf8"));
+    } else if (ext === "html" || ext === "htm") {
+      map[name] = {
+        title: name.replace(/[-_]/g, " "),
+        html: readFileSync(join(PRESETS_DIR, file), "utf8"),
+      };
+    }
   }
+  return map;
 }
+let presets = loadPresets();
 
 console.log(`[server] Loaded ${Object.keys(presets).length} presets: ${Object.keys(presets).join(", ") || "(none)"}`);
 console.log(`[server] Callback target: ${CALLBACK_BASE_URL}${CALLBACK_PATH}`);
@@ -61,13 +68,21 @@ console.log(`[server] Callback target: ${CALLBACK_BASE_URL}${CALLBACK_PATH}`);
 const app = express();
 app.use(express.json({ limit: "5mb" }));
 
-app.get("/health", (req, res) => {
+// EkoAI health-check: spec §6 calls GET {process_step_endpoint}/health before each run.
+// Our process_step_endpoint is <base>/<preset>, so EkoAI calls /<preset>/health.
+// We register both the bare /health (server-wide liveness) and /:preset/health.
+function healthHandler(req, res) {
   res.json({
     status: "ok",
     presets: Object.keys(presets),
     widgets: listAvailableWidgets(),
     callbackTarget: `${CALLBACK_BASE_URL}${CALLBACK_PATH}`,
   });
+}
+app.get("/health", healthHandler);
+app.get("/:preset/health", (req, res) => {
+  if (!presets[req.params.preset]) return res.status(404).json({ error: `preset '${req.params.preset}' not found` });
+  return healthHandler(req, res);
 });
 
 app.get("/presets", (req, res) => {
@@ -94,6 +109,8 @@ app.get("/:preset/preview", (req, res) => {
 });
 
 async function sendCallback(presetName, id) {
+  // Hot-reload presets from disk so late-added callbackApiKey is picked up
+  presets = loadPresets();
   const preset = presets[presetName];
   if (!preset) throw new Error(`preset '${presetName}' not found`);
 
@@ -101,14 +118,36 @@ async function sendCallback(presetName, id) {
   if (!apiKey) throw new Error(`no callbackApiKey for preset '${presetName}' (set in preset or WEBHOOK_CALLBACK_API_KEY env)`);
 
   const html = composeFromPreset(preset);
-  console.log(`[webhook→callback] preset=${presetName} id=${id} htmlLen=${html.length}`);
+  const sha256 = createHash("sha256").update(html).digest("hex");
+  console.log(`[webhook→callback] preset=${presetName} id=${id} htmlLen=${html.length} sha256=${sha256.slice(0,16)}…`);
+
+  // ── Write snapshot (Layer 2 prerequisite: byte-exact record of what we sent) ──
+  const snapDir = join(SNAPSHOTS_DIR, id);
+  if (!existsSync(snapDir)) mkdirSync(snapDir, { recursive: true });
+  writeFileSync(join(snapDir, "sent.html"), html);
+  const meta = {
+    id,
+    preset: presetName,
+    presetTitle: preset.title,
+    lang: preset.lang || "en",
+    htmlBytes: Buffer.byteLength(html),
+    sha256,
+    sentAt: new Date().toISOString(),
+    callbackEndpoint: `${CALLBACK_BASE_URL}${CALLBACK_PATH}`,
+    callbackApiKeyPrefix: apiKey.slice(0, 12) + "…", // don't leak full key
+    widgets: preset.widgets || null,
+  };
 
   const res = await axios.post(
     `${CALLBACK_BASE_URL}${CALLBACK_PATH}`,
     { id, homePage: { html, lang: preset.lang || "en" } },
     { headers: { "x-api-key": apiKey, "Content-Type": "application/json" }, timeout: 30_000, validateStatus: () => true }
   );
+  meta.callbackResponseStatus = res.status;
+  meta.callbackResponseBody = res.data;
+  writeFileSync(join(snapDir, "sent.meta.json"), JSON.stringify(meta, null, 2));
   console.log(`[webhook→callback] response ${res.status} ${JSON.stringify(res.data)}`);
+  console.log(`[snapshot] wrote ${snapDir}/sent.{html,meta.json}`);
 }
 
 function handleWebhook(presetName) {
