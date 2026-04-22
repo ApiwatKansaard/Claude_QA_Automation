@@ -148,6 +148,41 @@ async function sendCallback(presetName, id) {
   writeFileSync(join(snapDir, "sent.meta.json"), JSON.stringify(meta, null, 2));
   console.log(`[webhook→callback] response ${res.status} ${JSON.stringify(res.data)}`);
   console.log(`[snapshot] wrote ${snapDir}/sent.{html,meta.json}`);
+
+  // ── Capture ngrok inspector log (best-effort) ──────────────────────────────
+  // Every request EkoAI sent through the ngrok tunnel (webhook, health check)
+  // is recorded in the ngrok local API. Grab the ones whose body mentions this
+  // run-user id and save alongside the HTML snapshot so developers have full
+  // request/response headers + bodies for debugging when things go wrong.
+  try {
+    const NGROK_API = process.env.NGROK_API_URL || "http://localhost:4040";
+    const ngrokRes = await axios.get(`${NGROK_API}/api/requests/http`, { timeout: 3000, validateStatus: () => true });
+    const all = ngrokRes.data?.requests || [];
+
+    // ngrok stores request.raw + response.raw as base64-encoded full HTTP messages.
+    // Decode before filtering and annotate records so logs are human-readable.
+    const decodeB64 = (s) => { try { return Buffer.from(s || "", "base64").toString("utf8"); } catch { return ""; } };
+    const decorated = all.map(r => ({
+      ...r,
+      request_decoded: decodeB64(r.request?.raw),
+      response_decoded: decodeB64(r.response?.raw),
+    }));
+    const relevant = decorated.filter(r => (r.request_decoded || "").includes(id));
+
+    if (relevant.length) {
+      writeFileSync(join(snapDir, "ngrok-requests.json"), JSON.stringify(relevant, null, 2));
+      console.log(`[ngrok] captured ${relevant.length} request(s) for id=${id}`);
+    } else {
+      // Fallback: save recent decoded entries for manual inspection
+      const recent = decorated.slice(0, 5);
+      if (recent.length) {
+        writeFileSync(join(snapDir, "ngrok-requests.recent.json"), JSON.stringify(recent, null, 2));
+        console.log(`[ngrok] no id match; saved ${recent.length} most-recent (decoded) instead`);
+      }
+    }
+  } catch (e) {
+    console.warn(`[ngrok] inspector not reachable (${e.code || e.message}) — skipped log capture`);
+  }
 }
 
 function handleWebhook(presetName) {

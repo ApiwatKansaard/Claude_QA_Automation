@@ -102,6 +102,8 @@ const snapDir = join(SNAPSHOTS_DIR, runUserId);
 const snapExists = existsSync(snapDir);
 const sentHtml = snapExists ? readFileSync(join(snapDir, "sent.html"), "utf8") : null;
 const sentMeta = snapExists ? JSON.parse(readFileSync(join(snapDir, "sent.meta.json"), "utf8")) : null;
+const ngrokLogPath = join(snapDir, "ngrok-requests.json");
+const ngrokLog = snapExists && existsSync(ngrokLogPath) ? JSON.parse(readFileSync(ngrokLogPath, "utf8")) : null;
 
 // ── Run verification layers ──────────────────────────────────────────────────
 const report = {
@@ -221,6 +223,7 @@ console.log(`\n━━━━━━━━━━━━━━━━━━━━━�
 console.log(`  Delivery verification — job ${jobId}`);
 console.log(`  run-user: ${runUserId}  (${targetRunUser.user?.username ?? "?"} / ${targetRunUser.user?.email ?? "?"})`);
 console.log(`  snapshot: ${snapExists ? snapDir : "(none)"}`);
+console.log(`  ngrok:    ${ngrokLog ? `${ngrokLog.length} captured requests → ${ngrokLogPath}` : "(not captured)"}`);
 console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
 layer("l1_compose", report.layers.l1_compose);
 layer("l2_transport", report.layers.l2_transport);
