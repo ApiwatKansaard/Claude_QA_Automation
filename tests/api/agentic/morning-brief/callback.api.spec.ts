@@ -1,3 +1,4 @@
+// (husky pre-commit hook smoke-test — 2026-04-27; safe to revert)
 /**
  * API Test: Morning Brief — Callback
  *
