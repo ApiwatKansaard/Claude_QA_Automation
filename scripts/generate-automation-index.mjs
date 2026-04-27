@@ -141,7 +141,7 @@ const moduleList = Object.entries(moduleCounts).sort((a,b) => b[1]-a[1]);
 const tagList = Object.entries(tagCounts).sort((a,b) => b[1]-a[1]);
 
 const fileSections = dataset.map(f => {
-  const testRows = f.tests.map(t => `
+  const testRows = f.tests.map((t, idx) => `
     <tr class="test-row hover:bg-slate-50 border-t border-slate-100"
         data-tags="${t.tags.join(' ')}"
         data-search="${escape((t.title + ' ' + t.tags.join(' ') + ' ' + t.testRail.join(' ') + ' ' + t.jira.join(' ') + ' ' + f.file).toLowerCase())}">
@@ -149,6 +149,14 @@ const fileSections = dataset.map(f => {
       <td class="py-2 px-3 align-top whitespace-nowrap">${t.tags.map(tagBadge).join(' ') || '<span class="text-slate-300 text-xs">—</span>'}</td>
       <td class="py-2 px-3 align-top whitespace-nowrap">${t.testRail.map(trBadge).join(' ') || '<span class="text-slate-300 text-xs">—</span>'}</td>
       <td class="py-2 px-3 align-top whitespace-nowrap">${t.jira.map(jiraBadge).join(' ') || '<span class="text-slate-300 text-xs">—</span>'}</td>
+      <td class="py-2 px-3 align-top whitespace-nowrap">
+        <button onclick="copyTest('${escape(f.file)}', ${JSON.stringify(t.title).replace(/"/g, '&quot;')}, 'sh')"
+                class="px-2 py-0.5 bg-slate-700 text-white text-[10px] rounded hover:bg-slate-600"
+                title="Copy shell command to run JUST this test">▶ sh</button>
+        <button onclick="copyTest('${escape(f.file)}', ${JSON.stringify(t.title).replace(/"/g, '&quot;')}, 'claude')"
+                class="px-2 py-0.5 bg-indigo-600 text-white text-[10px] rounded hover:bg-indigo-500"
+                title="Copy as Claude Code prompt">🤖 claude</button>
+      </td>
     </tr>`).join('');
 
   return `
@@ -163,7 +171,10 @@ const fileSections = dataset.map(f => {
       <div class="text-right text-xs text-slate-600 shrink-0">
         <div><span class="font-semibold">${f.tests.length}</span> tests</div>
         ${f.testRailRange ? `<div class="font-mono text-indigo-700 mt-0.5">${escape(f.testRailRange)}</div>` : ''}
-        <button onclick="copyCmd('${escape(f.file)}')" class="mt-2 px-2 py-1 bg-slate-800 text-white text-xs rounded hover:bg-slate-700" title="Copy run command for this file">▶ copy command</button>
+        <div class="mt-2 flex flex-col gap-1 items-end">
+          <button onclick="copyFile('${escape(f.file)}', 'sh')" class="px-2 py-1 bg-slate-800 text-white text-xs rounded hover:bg-slate-700" title="Copy shell command — runs ALL tests in this file">▶ copy sh</button>
+          <button onclick="copyFile('${escape(f.file)}', 'claude')" class="px-2 py-1 bg-indigo-600 text-white text-xs rounded hover:bg-indigo-500" title="Copy Claude Code prompt — paste in any session">🤖 copy claude</button>
+        </div>
       </div>
     </header>
     <table class="w-full">
@@ -173,6 +184,7 @@ const fileSections = dataset.map(f => {
           <th class="text-left py-2 px-3 font-medium w-48">Tags</th>
           <th class="text-left py-2 px-3 font-medium w-40">TestRail</th>
           <th class="text-left py-2 px-3 font-medium w-32">Jira</th>
+          <th class="text-left py-2 px-3 font-medium w-32">Run</th>
         </tr>
       </thead>
       <tbody>${testRows}</tbody>
@@ -224,6 +236,13 @@ const html = `<!doctype html>
     <details class="mb-6 bg-white rounded-lg border border-slate-200" open>
       <summary class="px-4 py-3 cursor-pointer font-semibold text-slate-800 hover:bg-slate-50">▶ How to run</summary>
       <div class="px-4 py-3 text-sm space-y-3 border-t border-slate-100">
+        <div class="bg-amber-50 border border-amber-200 rounded p-3 text-xs">
+          <strong>Per-file / per-test buttons</strong> appear on the right of every section and row below:
+          <ul class="list-disc ml-5 mt-1">
+            <li><span class="font-mono bg-slate-800 text-white px-1 rounded">▶ sh</span> — copies a self-contained shell command (cd + refresh token + run); paste into any terminal.</li>
+            <li><span class="font-mono bg-indigo-600 text-white px-1 rounded">🤖 claude</span> — copies a natural-language prompt; paste into a Claude Code session.</li>
+          </ul>
+        </div>
         <div>
           <div class="font-mono text-xs text-slate-500 mb-1">All Morning Brief + Scheduled Jobs (skip sharepoint):</div>
           <code class="block bg-slate-900 text-green-300 p-3 rounded text-xs overflow-x-auto">npm run test:morning-brief</code>
@@ -231,10 +250,6 @@ const html = `<!doctype html>
         <div>
           <div class="font-mono text-xs text-slate-500 mb-1">Smoke only:</div>
           <code class="block bg-slate-900 text-green-300 p-3 rounded text-xs">npm run test:staging:smoke</code>
-        </div>
-        <div>
-          <div class="font-mono text-xs text-slate-500 mb-1">A single file:</div>
-          <code class="block bg-slate-900 text-green-300 p-3 rounded text-xs">TEST_ENV=staging npx playwright test &lt;file-path&gt;</code>
         </div>
         <div>
           <div class="font-mono text-xs text-slate-500 mb-1">First time / token expired (refresh Cognito token):</div>
@@ -308,17 +323,44 @@ const html = `<!doctype html>
     applyFilter();
   }));
 
-  function copyCmd(file) {
-    const cmd = 'TEST_ENV=staging npx playwright test ' + file;
-    navigator.clipboard.writeText(cmd).then(() => {
-      const toast = document.createElement('div');
-      toast.textContent = '📋 Copied: ' + cmd;
-      toast.className = 'fixed top-4 right-4 bg-slate-800 text-white px-4 py-2 rounded shadow-lg text-sm z-50';
-      document.body.appendChild(toast);
-      setTimeout(() => toast.remove(), 2500);
-    });
+  // Repo absolute path — adjust if cloned somewhere else.
+  const REPO = '/Users/amity/Documents/Claude_QA_Automation';
+
+  // Robust shell command: cd to repo, refresh token (silent), run tests.
+  // Works whether or not the user is in the repo dir or has a fresh token.
+  function shCmd(testTarget, grep) {
+    const grepArg = grep ? ' --grep ' + JSON.stringify(grep).replace(/"/g, "'") : '';
+    return 'cd ' + REPO + ' && \\\n' +
+      '  TEST_ENV=staging PW_HTML_OPEN=never npx playwright test --project=setup --reporter=line && \\\n' +
+      '  TEST_ENV=staging npx playwright test ' + testTarget + grepArg;
   }
-  window.copyCmd = copyCmd;
+
+  // Claude Code prompt — natural language; Claude will translate to the right command.
+  function claudePrompt(testTarget, grep) {
+    return 'รันเทส Playwright ไฟล์นี้: ' + testTarget +
+      (grep ? ' เฉพาะเคส "' + grep + '"' : '') +
+      '. (cwd: ' + REPO + ', env: staging, refresh token ก่อนถ้าหมดอายุ)';
+  }
+
+  function toast(msg) {
+    const el = document.createElement('div');
+    el.textContent = msg;
+    el.className = 'fixed top-4 right-4 bg-slate-800 text-white px-4 py-2 rounded shadow-lg text-sm z-50 max-w-xl whitespace-pre';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+  }
+
+  function copyFile(file, mode) {
+    const cmd = mode === 'claude' ? claudePrompt(file) : shCmd(file);
+    navigator.clipboard.writeText(cmd).then(() => toast('📋 Copied (' + mode + '):\\n' + cmd));
+  }
+  function copyTest(file, title, mode) {
+    const cmd = mode === 'claude' ? claudePrompt(file, title) : shCmd(file, title);
+    navigator.clipboard.writeText(cmd).then(() => toast('📋 Copied (' + mode + '):\\n' + cmd));
+  }
+  window.copyFile = copyFile;
+  window.copyTest = copyTest;
+  window.copyCmd = copyFile; // back-compat
   </script>
 </body>
 </html>`;
