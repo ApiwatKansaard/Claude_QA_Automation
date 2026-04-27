@@ -43,7 +43,8 @@
     "test:webhook:smoke": "npx playwright test tests/e2e/ekoai-console/ai-task-scheduler/webhook-e2e.spec.ts --grep @smoke",
     "test:webhook:scenarios": "npx playwright test tests/e2e/ekoai-console/ai-task-scheduler/webhook-scenarios.spec.ts",
     "test:history-log": "npx playwright test tests/e2e/ekoai-console/ai-task-scheduler/history-logs-with-mock.spec.ts",
-    "test:ai-scheduler": "npx playwright test tests/e2e/ekoai-console/ai-task-scheduler/"
+    "test:ai-scheduler": "npx playwright test tests/e2e/ekoai-console/ai-task-scheduler/",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0",
@@ -53,6 +54,7 @@
     "allure-playwright": "^3.2.0",
     "dotenv": "^16.4.0",
     "eslint": "^9.0.0",
+    "husky": "^9.1.7",
     "prettier": "^3.4.0",
     "ts-node": "^10.9.0",
     "typescript": "^5.7.0"

@@ -25,7 +25,7 @@ node_modules/
 playwright-report/
 playwright/.auth/
 playwright/.auth/*.json
-reports/
+reports/*
+!reports/automation-index.html
 src/widget-webhook-server/snapshots/
 test-results/
-reports/automation-index.html

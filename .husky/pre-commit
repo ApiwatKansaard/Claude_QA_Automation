@@ -1,0 +1,20 @@
+#!/usr/bin/env sh
+# Auto-regenerate reports/automation-index.html when any .spec.ts is staged.
+# Keeps the catalog in lock-step with the source tree on every commit.
+
+# Are any test spec files staged? (use `|| true` so empty grep doesn't trip set -e)
+staged_specs=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '^tests/.*\.spec\.ts$' || true)
+
+if [ -z "$staged_specs" ]; then
+  exit 0
+fi
+
+echo "▶ tests/ changed — regenerating automation-index.html"
+node scripts/generate-automation-index.mjs > /dev/null 2>&1 || {
+  echo "  ✗ index generation failed (commit aborted)"
+  exit 1
+}
+
+# Stage the regenerated index so it ships in this same commit
+git add reports/automation-index.html
+echo "  ✓ reports/automation-index.html staged"

@@ -2,25 +2,64 @@
 
 > **Repository:** `ApiwatKansaard/Claude_QA_Automation`
 > **Sibling repo:** `ApiwatKansaard/Claude_QA_Agent` (agents, skills, sprint data)
-> **Last updated:** 2026-04-21 · **196 automated test cases** · AI Task Scheduler + Scheduled Jobs
+> **Last updated:** 2026-04-27 · **421 automated test cases** across 44 spec files
 > **Platform:** Claude Code (CLI + VSCode Extension)
 
 Automated E2E and API tests for the EkoAI platform using Playwright + TypeScript.
 
-## Browse the test catalog
-
-Generate a self-contained, searchable HTML index of every automated test in
-this repo (titles, tags, TestRail/Jira annotations, run commands):
+## 🚀 Onboarding for new QA (10 min)
 
 ```bash
-npm run index          # generate reports/automation-index.html
-npm run index:open     # generate + open in browser
+# 1. Clone both repos in the same parent folder
+git clone https://github.com/ApiwatKansaard/Claude_QA_Agent.git
+git clone https://github.com/ApiwatKansaard/Claude_QA_Automation.git
+cd Claude_QA_Automation
+
+# 2. Install
+npm install                        # also installs husky pre-commit hook
+npx playwright install chromium
+
+# 3. Credentials (one-time)
+cp environments/.env.example environments/.env.staging
+#   → fill ADMIN_EMAIL + ADMIN_PASSWORD
+
+# 4. Refresh Cognito token (~1 hour validity; re-run when expired)
+npm run setup:staging
+
+# 5. Browse catalog of every automated test
+open reports/automation-index.html        # already in repo — no install needed
+
+# 6. Run a suite via Claude Code
+#   In a Claude session, type any of:
+#     "รัน morning brief api ตัด sharepoint"
+#     "test morning brief"
+#     "MB api retest"
+#   …or run the npm script directly:
+npm run test:morning-brief
 ```
 
-The output is a single static `.html` file — share it with any QA teammate;
-they can browse, filter by tag (smoke / sanity / regression / P1 / P2 /
-security), and copy a per-file run command without needing to install
-anything. Re-run after adding/removing tests.
+## 📋 Browse the test catalog
+
+`reports/automation-index.html` is a **self-contained**, browser-openable
+catalog of every automated test in this repo. **No install needed** — open
+the file in any browser and you get:
+
+| Feature | What it does |
+|---|---|
+| 5 stat cards | Total tests · spec files · with TestRail · with Jira · smoke count |
+| 🔎 Live search | by title, tag, TestRail (`Cxxx`), Jira (`AE-xxx`), or file path |
+| Tag filter | `@smoke` / `@sanity` / `@regression` / `@P1` / `@P2` / `@security` |
+| Product filter | agentic / ekoai-console / sharepoint-km / … |
+| ▶ Copy command | Per-file button copies a ready-to-run `npx playwright test` cmd |
+
+**Auto-update:** A husky `pre-commit` hook regenerates the index whenever
+any `tests/**/*.spec.ts` is staged, so the file in `main` always matches
+the source tree. To regenerate manually:
+
+```bash
+npm run index          # write reports/automation-index.html
+npm run index:open     # write + open in browser
+```
 
 ## Recent changes
 
