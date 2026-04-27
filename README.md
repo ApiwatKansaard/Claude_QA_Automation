@@ -7,6 +7,21 @@
 
 Automated E2E and API tests for the EkoAI platform using Playwright + TypeScript.
 
+## Browse the test catalog
+
+Generate a self-contained, searchable HTML index of every automated test in
+this repo (titles, tags, TestRail/Jira annotations, run commands):
+
+```bash
+npm run index          # generate reports/automation-index.html
+npm run index:open     # generate + open in browser
+```
+
+The output is a single static `.html` file — share it with any QA teammate;
+they can browse, filter by tag (smoke / sanity / regression / P1 / P2 /
+security), and copy a per-file run command without needing to install
+anything. Re-run after adding/removing tests.
+
 ## Recent changes
 
 **2026-04-21 — Widget Webhook Server + one-shot Scheduled Job factory**

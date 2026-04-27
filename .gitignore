@@ -28,3 +28,4 @@ playwright/.auth/*.json
 reports/
 src/widget-webhook-server/snapshots/
 test-results/
+reports/automation-index.html
