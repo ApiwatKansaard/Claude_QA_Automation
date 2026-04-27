@@ -80,6 +80,15 @@ function healthHandler(req, res) {
   });
 }
 app.get("/health", healthHandler);
+
+// AE-14666 retest helper: process-step always-fail endpoint.
+// MUST be registered BEFORE /:preset/health so the literal route wins.
+app.get("/fail-process/health", (req, res) => res.json({ status: "ok", mode: "fail-process" }));
+app.post("/fail-process/webhook", (req, res) => {
+  console.log(`[fail-process] webhook received id=${req.body?.id} → returning 500`);
+  res.status(500).json({ error: "intentional 500 for AE-14666 retest" });
+});
+
 app.get("/:preset/health", (req, res) => {
   if (!presets[req.params.preset]) return res.status(404).json({ error: `preset '${req.params.preset}' not found` });
   return healthHandler(req, res);

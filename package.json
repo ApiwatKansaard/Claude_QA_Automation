@@ -24,6 +24,8 @@
     "test:staging:sanity": "TEST_ENV=staging npx playwright test --grep @sanity",
     "test:staging:regression": "TEST_ENV=staging npx playwright test --grep @regression",
     "test:prod:smoke": "TEST_ENV=prod npx playwright test --grep @smoke",
+    "test:morning-brief": "TEST_ENV=staging PW_HTML_OPEN=never npx playwright test --project=setup && TEST_ENV=staging PW_HTML_OPEN=never npx playwright test --project=api --grep-invert 'sharepoint-km|SharePoint KM' && python3 scripts/generate_report.py",
+    "test:morning-brief:quick": "TEST_ENV=staging PW_HTML_OPEN=never npx playwright test --project=api --grep-invert 'sharepoint-km|SharePoint KM'",
     "setup": "npx playwright test --project=setup",
     "setup:dev": "TEST_ENV=dev npx playwright test --project=setup",
     "setup:staging": "TEST_ENV=staging npx playwright test --project=setup",
