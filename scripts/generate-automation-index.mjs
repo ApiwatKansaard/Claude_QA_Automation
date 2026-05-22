@@ -42,12 +42,15 @@ function parseSpec(filePath, src) {
   const describe = describeMatch ? describeMatch[1] : "";
 
   const tests = [];
-  // Match `test('title', { ...options... }, async (...) => { ... })`.
+  const seenStarts = new Set();
+
+  // Form A: `test('title', { ...options... }, async (...) => { ... })`.
   // Non-greedy on outer block would stop at the first `}` (inside annotation), so
   // we anchor to the trailing `async` (or `(async`) instead — which all tests use.
-  const testRegex = /test\(\s*\n?\s*['"`]([^'"`]+)['"`]\s*,\s*(\{[\s\S]*?\}),\s*\n?\s*\(?async\s*\(/g;
+  const formA = /test\(\s*\n?\s*['"`]([^'"`]+)['"`]\s*,\s*(\{[\s\S]*?\}),\s*\n?\s*\(?async\s*\(/g;
   let m;
-  while ((m = testRegex.exec(src)) !== null) {
+  while ((m = formA.exec(src)) !== null) {
+    seenStarts.add(m.index);
     const title = m[1];
     const optsBlock = m[2];
 
@@ -64,6 +67,22 @@ function parseSpec(filePath, src) {
       tags,
       testRail: trMatches.map(t => t[1]),
       jira: jiraMatches.map(t => t[1]),
+    });
+  }
+
+  // Form B: `test('title with @tag inline', async (...) => { ... })` —
+  // older specs (e.g. webhook-timing.spec.ts) put tags inside the title string.
+  const formB = /test\(\s*['"`]([^'"`]+)['"`]\s*,\s*\(?async\s*\(/g;
+  while ((m = formB.exec(src)) !== null) {
+    if (seenStarts.has(m.index)) continue; // already matched by Form A
+    const rawTitle = m[1];
+    const inlineTags = [...rawTitle.matchAll(/(@[A-Za-z0-9_-]+)/g)].map(t => t[1]);
+    const cleanTitle = rawTitle.replace(/\s*@[A-Za-z0-9_-]+/g, '').trim();
+    tests.push({
+      title: cleanTitle || rawTitle,
+      tags: inlineTags,
+      testRail: [],
+      jira: [],
     });
   }
 
