@@ -8,7 +8,11 @@
       "subtitle": "Updated {{homePageUpdatedAtFormatted}}",
       "text": "Here is your daily brief for the team. Numbers below reflect yesterday's performance across all channels."
     },
-    { "type": "lineChart" },
-    { "type": "tabs" }
+    {
+      "type": "lineChart"
+    },
+    {
+      "type": "tabs"
+    }
   ]
 }

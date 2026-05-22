@@ -1,0 +1,26 @@
+POST https://ekoai.staging.ekoapp.com/v1/scheduled-jobs
+Content-Type: application/json
+Authorization: Bearer <idToken>
+
+{
+  "name": "UI-BUG-Repro COUNT1",
+  "description": "Reproduction via UI: Custom → every 2 weeks → after 1 occurrence → UI shows &quot;Once&quot;",
+  "step": {
+    "trigger": {
+      "iCalendarDefinition": "DTSTART:20260422T091000Z\nRRULE:BYHOUR=16;BYMINUTE=10;FREQ=WEEKLY;INTERVAL=2;BYDAY=WE;COUNT=1",
+      "runUntilTimes": 1
+    },
+    "process": {
+      "endpoint": "https://gecko-evolved-buzzard.ngrok-free.app/default",
+      "apiKey": "widget-webhook-secret",
+      "timeoutSeconds": 60
+    },
+    "action": [{ "type": "HOME_PAGE", "schedule": { "mode": "IMMEDIATE" } }]
+  },
+  "audience": { "users": ["689d65d767fc177d804b1318"], "groups": [] }
+}
+
+Response 201:
+  "id": "69e8877c538adca1fda79291"
+  "iCalendarDefinition": "... FREQ=WEEKLY;INTERVAL=2;BYDAY=WE;COUNT=1"
+  (stored exactly as sent — scheduler ignores COUNT=1 at runtime)
