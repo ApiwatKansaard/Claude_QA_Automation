@@ -46,18 +46,28 @@ function popFlag(name) {
 const copyAudienceFromJobId = popFlag("--copy-audience-from");
 const publicUrlArg = popFlag("--public-url");
 const scheduleInArg = popFlag("--schedule-in"); // e.g. "2m" = run 2 minutes from now
+// EGT 18.4 — new ScheduledJob fields
+const runModeArg = popFlag("--run-mode"); // 'individual' (default) | 'shared'
+const sharedAudienceIdArg = popFlag("--shared-audience-id");
 
 const configPath = args[0];
 if (!configPath) {
   console.error("Usage: node scripts/create-scheduler.mjs [options] <config.json>");
   console.error("");
   console.error("Options:");
-  console.error("  --public-url <url>          Override webhook.publicBaseUrl (e.g. ngrok URL)");
-  console.error("  --copy-audience-from <id>   Clone audience from an existing job");
-  console.error("  --schedule-in <duration>    Schedule run N from now (e.g. 2m, 30s, 1h)");
+  console.error("  --public-url <url>             Override webhook.publicBaseUrl (e.g. ngrok URL)");
+  console.error("  --copy-audience-from <id>      Clone audience from an existing job");
+  console.error("  --schedule-in <duration>       Schedule run N from now (e.g. 2m, 30s, 1h)");
+  console.error("  --run-mode <individual|shared> EGT 18.4 — runMode on ScheduledJob (default: individual)");
+  console.error("  --shared-audience-id <id>      EGT 18.4 — sharedAudienceId (only meaningful when shared)");
   console.error("");
   console.error("Tip: if .ngrok-url exists in repo root (written by start-demo.sh),");
   console.error("     its URL is used automatically when --public-url is omitted.");
+  process.exit(2);
+}
+
+if (runModeArg && !["individual", "shared"].includes(runModeArg)) {
+  console.error(`--run-mode must be 'individual' or 'shared', got '${runModeArg}'`);
   process.exit(2);
 }
 
@@ -150,6 +160,18 @@ const payload = {
   audience,
 };
 
+// EGT 18.4 — runMode + sharedAudienceId (only added when explicitly chosen or set in config)
+const effectiveRunMode = runModeArg || config.runMode;
+if (effectiveRunMode) {
+  payload.runMode = effectiveRunMode;
+  console.log(`[runMode] ${effectiveRunMode}`);
+}
+const effectiveSharedAudienceId = sharedAudienceIdArg || config.sharedAudienceId;
+if (effectiveSharedAudienceId) {
+  payload.sharedAudienceId = effectiveSharedAudienceId;
+  console.log(`[sharedAudienceId] ${effectiveSharedAudienceId}`);
+}
+
 console.log(`[create] POST ${API_BASE}/v1/scheduled-jobs`);
 const createRes = await axios.post(`${API_BASE}/v1/scheduled-jobs`, payload, { headers: authHeaders, validateStatus: () => true });
 if (createRes.status < 200 || createRes.status >= 300) {
@@ -189,6 +211,8 @@ console.log(`   id:           ${jobId}`);
 console.log(`   name:         ${job.name}`);
 console.log(`   nextRun:      ${job.step?.trigger?.nextRun ?? "(n/a)"}`);
 console.log(`   audience:     users=${audience.users?.length ?? 0} groups=${audience.groups?.length ?? 0}`);
+if (effectiveRunMode) console.log(`   runMode:      ${job.runMode || effectiveRunMode}`);
+if (effectiveSharedAudienceId) console.log(`   sharedAudId:  ${job.sharedAudienceId || effectiveSharedAudienceId}`);
 console.log(`   process URL:  ${processEndpoint}`);
 console.log(`   webhook path: POST ${processEndpoint}/webhook  (x-api-key: ${wh.processApiKey || "widget-webhook-secret"})`);
 console.log(`   callback key: ${callbackApiKey}`);

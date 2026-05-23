@@ -117,7 +117,7 @@ app.get("/:preset/preview", (req, res) => {
   res.type("html").send(composeFromPreset(preset));
 });
 
-async function sendCallback(presetName, id) {
+async function sendCallback(presetName, id, ctx = {}) {
   // Hot-reload presets from disk so late-added callbackApiKey is picked up
   presets = loadPresets();
   const preset = presets[presetName];
@@ -128,7 +128,8 @@ async function sendCallback(presetName, id) {
 
   const html = composeFromPreset(preset);
   const sha256 = createHash("sha256").update(html).digest("hex");
-  console.log(`[webhook→callback] preset=${presetName} id=${id} htmlLen=${html.length} sha256=${sha256.slice(0,16)}…`);
+  const modeTag = ctx.runMode ? ` runMode=${ctx.runMode}` : "";
+  console.log(`[webhook→callback] preset=${presetName} id=${id}${modeTag} htmlLen=${html.length} sha256=${sha256.slice(0,16)}…`);
 
   // ── Write snapshot (Layer 2 prerequisite: byte-exact record of what we sent) ──
   const snapDir = join(SNAPSHOTS_DIR, id);
@@ -145,11 +146,25 @@ async function sendCallback(presetName, id) {
     callbackEndpoint: `${CALLBACK_BASE_URL}${CALLBACK_PATH}`,
     callbackApiKeyPrefix: apiKey.slice(0, 12) + "…", // don't leak full key
     widgets: preset.widgets || null,
+    // EGT 18.4: capture the runMode + sharedAudienceId the webhook arrived with
+    // so the snapshot folder is a complete record of one delivery (individual or shared).
+    runMode: ctx.runMode || null,
+    sharedAudienceId: ctx.sharedAudienceId || null,
   };
+
+  // EGT 18.4 contract: the callback must echo `runMode` so the handler dispatches to
+  // the right collection (ScheduledJobRunUser for individual, ScheduledJobRunShared for shared).
+  // Pre-EGT-18.4 callers can keep sending `{id, homePage}` and the server treats it as individual.
+  //
+  // Note: per Confluence 3633610754 "New Flow (diagram) - receive callback" the callback body is
+  // `{ id, runMode, homePage? }` only — `sharedAudienceId` lives in the *outbound* webhook body
+  // (server → Agentic Service) and must NOT be echoed back. Backend validator rejects it with 422.
+  const callbackBody = { id, homePage: { html, lang: preset.lang || "en" } };
+  if (ctx.runMode) callbackBody.runMode = ctx.runMode;
 
   const res = await axios.post(
     `${CALLBACK_BASE_URL}${CALLBACK_PATH}`,
-    { id, homePage: { html, lang: preset.lang || "en" } },
+    callbackBody,
     { headers: { "x-api-key": apiKey, "Content-Type": "application/json" }, timeout: 30_000, validateStatus: () => true }
   );
   meta.callbackResponseStatus = res.status;
@@ -196,12 +211,35 @@ async function sendCallback(presetName, id) {
 
 function handleWebhook(presetName) {
   return (req, res) => {
-    const { id } = req.body ?? {};
-    console.log(`[webhook] preset=${presetName} id=${id}`);
+    const body = req.body ?? {};
+    const { id, runMode, data, sharedAudienceId } = body;
+
+    // ── EGT 18.4 contract enforcement (TP Scheduled Job run mode §"Reject mismatched requests") ──
+    // When runMode is present, validate the request shape per spec:
+    //   - runMode=individual MUST include `data`
+    //   - runMode=shared MUST NOT include `data`
+    //   - sharedAudienceId is optional in shared, omitted in individual
+    // Pre-EGT-18.4 callers (no runMode) are accepted unchanged for backward compatibility.
+    if (runMode !== undefined) {
+      if (!["individual", "shared"].includes(runMode)) {
+        console.log(`[webhook] preset=${presetName} id=${id} runMode=${runMode} → 400 (invalid runMode)`);
+        return res.status(400).json({ error: `runMode must be 'individual' or 'shared', got '${runMode}'` });
+      }
+      if (runMode === "individual" && !data) {
+        console.log(`[webhook] preset=${presetName} id=${id} runMode=individual missing data → 400`);
+        return res.status(400).json({ error: "runMode 'individual' requires data field" });
+      }
+      if (runMode === "shared" && data !== undefined) {
+        console.log(`[webhook] preset=${presetName} id=${id} runMode=shared has data → 400 (must omit)`);
+        return res.status(400).json({ error: "runMode 'shared' must omit data field" });
+      }
+    }
+
+    console.log(`[webhook] preset=${presetName} id=${id} runMode=${runMode || '(unset)'} sharedAudienceId=${sharedAudienceId || '-'}`);
     if (!id) return res.status(400).json({ error: "id required in request body" });
     res.json({ received: true }); // ack fast per EkoAI contract (< 10s)
     setTimeout(
-      () => sendCallback(presetName, id).catch(e => console.error("[callback ERROR]", e?.response?.data || e.message)),
+      () => sendCallback(presetName, id, { runMode, sharedAudienceId }).catch(e => console.error("[callback ERROR]", e?.response?.data || e.message)),
       CALLBACK_DELAY_MS
     );
   };
